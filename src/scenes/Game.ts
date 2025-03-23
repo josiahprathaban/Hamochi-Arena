@@ -46,6 +46,9 @@ export class Game extends Scene {
   txtOpponent: GameObjects.Text;
   ring: GameObjects.Image;
   themeTxtGrp: Array<any>;
+  timerX: number = 60;
+  txtTimer: GameObjects.Text;
+  timeEventX: Phaser.Time.TimerEvent;
 
   constructor() {
     super("Game");
@@ -181,6 +184,13 @@ export class Game extends Scene {
         0xffffff
       )
       .setScrollFactor(0);
+
+    this.txtTimer = this.add.text(Number(this.game.config.width) / 2, 1080, this.timerX.toString().padStart(3, '0'), {
+      fontSize: '64px',
+      fontFamily: "Arial",
+      color: '#ffffff',
+      fontStyle: "bold"
+    }).setOrigin(0.5);
 
 
     this.imgHero = this.add
@@ -465,7 +475,25 @@ export class Game extends Scene {
       260
     ).setZoom(1);
     this.heroMove();
-    this.opponentMove();
+    await this.opponentMove();
+    this.timeEventX = this.time.addEvent({
+      delay: 1000, // 1 second
+      callback: () => {
+        this.timerX--;
+        this.txtTimer.setText(this.timerX.toString().padStart(3, '0'))
+        if (this.timerX <= 0) {
+          this.timeEventX.remove()
+          if (this.imgHero!.x > 450) {
+            this.heroWins();
+          } else {
+            this.opponentWins()
+          }
+        }
+      },
+      callbackScope: this,
+      loop: true
+    });
+
   }
 
   update() {
@@ -1044,6 +1072,7 @@ export class Game extends Scene {
   }
 
   heroWins() {
+    this.imgOpponentThinking!.setAlpha(0);
     this.isGameEnded = true;
     this.destroyQuestion()
     this.heroTimer?.destroy()
@@ -1080,6 +1109,7 @@ export class Game extends Scene {
   }
 
   opponentWins() {
+    this.imgOpponentThinking!.setAlpha(0);
     this.isGameEnded = true;
     this.destroyQuestion()
     this.heroTimer?.destroy()
