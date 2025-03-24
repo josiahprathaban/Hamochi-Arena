@@ -31,6 +31,8 @@ export class Preloader extends Scene {
     this.load.image('backgroundX', 'blk.png');
     this.load.image('imgRing', 'ringx.png');
     this.load.image('imgFruits', 'fruits.png');
+    this.load.image('imgStationery', 'stationery.png');
+    this.load.image('imgAnimals', 'animals.png');
     this.load.image('background', 'bg.png');
     this.load.image('background2', 'bg2.png');
     this.load.image('imgHero', 'player-1.png');
@@ -48,7 +50,15 @@ export class Preloader extends Scene {
     this.load.image('imgAss3', 'ass-3.png');
     this.load.image('imgAss4', 'ass-4.png');
     this.load.image('imgAss5', 'ass-5.png');
+    this.load.image('imgAni1', 'ani-1.png');
+    this.load.image('imgAni2', 'ani-2.png');
+    this.load.image('imgAni3', 'ani-3.png');
+    this.load.image('imgAni4', 'ani-4.png');
+    this.load.image('imgAni5', 'ani-5.png');
+    this.load.image('imgAni6', 'ani-6.png');
+    this.load.image('imgAni7', 'ani-7.png');
     this.load.image('imgTimer', 'timer.png');
+    this.load.image('imgPower', 'power.png');
     this.load.image('imgIndicator', 'indi.png');
 
     this.load.image('imgCorrect', 'correct.png');

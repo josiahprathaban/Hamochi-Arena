@@ -17,15 +17,15 @@ export class Game extends Scene {
   gameCamera: Phaser.Cameras.Scene2D.Camera | undefined;
   optionButtons: GameObjects.Container[] = [];
   questionBubble: GameObjects.Container | undefined;
-  currentQuestion: number = 0;
+  currentQuestion: any;
   playersTween: Phaser.Tweens.Tween | undefined;
   player: String = "";
   enterBtn: GameObjects.Text;
   prompt: GameObjects.Text;
   isGameEnded: Boolean = false;
   theme: String
-  barWidth: number = 300;
-  barHeight: number = 15;
+  barWidth: number = 275;
+  barHeight: number = 5;
   heroProgressBar: GameObjects.Graphics;
   heroProgressBarBg: GameObjects.Rectangle;
   heroTimer: Phaser.Time.TimerEvent;
@@ -49,6 +49,14 @@ export class Game extends Scene {
   timerX: number = 60;
   txtTimer: GameObjects.Text;
   timeEventX: Phaser.Time.TimerEvent;
+  themes: any;
+  texts: Array<any> = [];
+  displayTxt: GameObjects.Text;
+  displayImg: any;
+  opponentBasePower: number = 0;
+  heroBasePower: number = 0;
+  heroPowerTxt: GameObjects.Text;
+  opponentPowerTxt: GameObjects.Text;
 
   constructor() {
     super("Game");
@@ -56,8 +64,7 @@ export class Game extends Scene {
 
   async create() {
     this.questions = this.shuffleArray(questions)
-    const params = new URLSearchParams(window.location.search);
-    this.theme = params.get('theme') ?? "market";
+    this.themes = ["Fruits", "Animals", "Stationery"]
 
     // animations
     this.anims.create({
@@ -85,40 +92,8 @@ export class Game extends Scene {
 
     this.background = this.add
       .image(540, 0, "backgroundX")
-      .setOrigin(0.5, 0).setScrollFactor(1, 0);
+      .setOrigin(0.5, 0).setScrollFactor(1);
 
-    this.add
-      .image(540, 90, "imgFruits")
-      .setOrigin(0.5, 0).setScrollFactor(1, 0).setScale(0.6).setAlpha(0.6);
-
-    this.add
-      .text(390, 110, "theme", {
-        fontFamily: "Arial",
-        fontSize: "32px",
-      }).setOrigin(0.5)
-
-    this.add
-      .text(Number(this.game.config.width) / 2, 310, "Fruits", {
-        fontFamily: "Arial",
-        fontSize: "64px",
-      }).setOrigin(0.5)
-
-    // this.generateThemeTxt("FRUITS")
-
-    this.animateScrollingText("FRUITS", -420, 620);
-    // this.ring = this.add
-    //   .image(540, 600, "imgRing")
-    //   .setOrigin(0.5, 0).setScrollFactor(1, 0);
-
-    // this.add
-    //   .rectangle(
-    //     Number(this.game.config.width) / 2,
-    //     1260,
-    //     Number(this.game.config.width),
-    //     600,
-    //     0xf9dc80
-    //   )
-    //   .setScrollFactor(0);
     this.add
       .rectangle(
         Number(this.game.config.width) / 2,
@@ -279,6 +254,13 @@ export class Game extends Scene {
       .setOrigin(0.5)
       .setScrollFactor(0);
 
+    this.add
+      .text(390, 110, "theme", {
+        fontFamily: "Arial",
+        fontSize: "32px",
+      }).setOrigin(0.5)
+    this.updateTheme()
+
     this.heroAppears();
     await this.timeDelay(1000);
     this.opponentAppears();
@@ -300,43 +282,70 @@ export class Game extends Scene {
     this.heroProgressBar = this.add.graphics().setDepth(999).setScrollFactor(0);
 
     this.heroProgressBarBg = this.add.rectangle(
-      200, 1010,
-      this.barWidth + 12, this.barHeight + 10,
+      200, 1160,
+      this.barWidth + 4, this.barHeight + 4,
       0xffffff
     ).setScrollFactor(0)
+
+    this.heroPowerTxt = this.add
+      .text(150, 990, "+ " + this.heroBasePower, {
+        fontFamily: "Arial",
+        fontSize: "32px",
+      })
+
+    this.add
+      .sprite(80, 970, "imgPower")
+      .setOrigin(0)
+      .setDepth(2000)
+      .setScale(0.25)
 
     this.opponentProgressBar = this.add.graphics().setDepth(999).setScrollFactor(0);
 
     this.opponentProgressBarBg = this.add.rectangle(
-      Number(this.game.config.width) - 200, 1010,
-      this.barWidth + 12, this.barHeight + 10,
+      Number(this.game.config.width) - 200, 1160,
+      this.barWidth + 4, this.barHeight + 4,
       0xffffff
     ).setScrollFactor(0)
 
+    this.opponentPowerTxt = this.add
+      .text(Number(this.game.config.width) - 150, 990, "+ " + this.opponentBasePower, {
+        fontFamily: "Arial",
+        fontSize: "32px",
+      }).setOrigin(1, 0)
+
+    this.add
+      .sprite(Number(this.game.config.width) - 80, 970, "imgPower")
+      .setOrigin(1,0)
+      .setDepth(2000)
+      .setScale(0.25)
+
 
   }
 
-  generateThemeTxt(theme) {
-    this.themeTxtGrp = []
-    for (let index = 0; index < 15; index++) {
-      const element = this.add
-        .text(index * 200, 620, theme, {
-          fontFamily: "Arial",
-          fontSize: "32px",
-          fontStyle: "bold"
-        }).setAlpha(0.7)
-      this.themeTxtGrp.push(element)
-    }
-    this.tweens.add({
-      targets: this.themeTxtGrp,
-      x: '-=900',
-      ease: "Linear",
-      duration: 10000,
-      repeat: -1,
-    });
+  updateTheme() {
+    this.theme = this.themes[Math.floor(Math.random() * this.themes.length)];
+    this.animateScrollingText(-420, 620);
+
+    this.displayImg?.destroy()
+    this.displayImg = this.add
+      .image(540, 90, "img" + this.theme)
+      .setOrigin(0.5, 0).setScrollFactor(1).setScale(0.6).setAlpha(0.6);
+
+    this.displayTxt?.destroy()
+    this.displayTxt = this.add
+      .text(Number(this.game.config.width) / 2, 310, this.theme.toString(), {
+        fontFamily: "Arial",
+        fontSize: "64px",
+      }).setOrigin(0.5)
+
+
   }
 
-  animateScrollingText(textString, startX, startY) {
+  animateScrollingText(startX, startY) {
+    this.texts.forEach(text => {
+      text.destroy()
+    })
+    this.texts = []
     const rectWidth = 1920; // Width of the scrolling area
     const rectHeight = 50; // Height of the scrolling area
     const textSpacing = 200; // Space between each instance of text
@@ -347,39 +356,39 @@ export class Game extends Scene {
     maskShape.fillRect(startX, startY, rectWidth, rectHeight);
     let mask = maskShape.createGeometryMask();
 
-    let texts = [];
     let numTexts = Math.ceil(rectWidth / textSpacing) + 2; // Extra text for smooth looping
 
     // Create multiple text instances (double the amount for a smooth cycle)
     for (let i = 0; i < numTexts * 2; i++) {
       let textX = startX + i * textSpacing;
-      let text = this.add.text(textX, startY, textString, {
+      let text = this.add.text(textX, startY, this.theme.toString(), {
         fontFamily: "Arial",
         fontSize: "32px",
         fontStyle: "bold"
       }).setAlpha(0.7).setMask(mask);
-      texts.push(text);
+      this.texts.push(text);
     }
 
     // Scroll animation
     this.tweens.add({
-      targets: texts,
-      x: `-=${textSpacing * numTexts}`, // Move left
+      targets: this.texts,
+      x: `-=${textSpacing * numTexts}`,
       duration: speed,
       ease: 'Linear',
       repeat: -1,
-      onUpdate: function (tween) {
-        texts.forEach(text => {
+      onUpdate: (tween) => {
+        this.texts.forEach(text => {
           if (text.x < startX - textSpacing) {
-            text.x += textSpacing * numTexts * 2; // Move text immediately to the right
+            text.x += textSpacing * numTexts * 2;
           }
         });
       }
     });
   }
 
-
   startHeroTimer(duration: number) {
+    // if (Math.random() < 0.5)
+    this.updateTheme()
     // this.heroProgressBarBg.visible = true
     this.heroTimer = this.time.addEvent({
       delay: 20,
@@ -388,7 +397,7 @@ export class Game extends Scene {
         this.heroProgress += 1 / (duration * 50);
         this.heroProgressBar.clear();
         this.heroProgressBar.fillStyle(0x00ff00, 1);
-        this.heroProgressBar.fillRect(200 - this.barWidth / 2, 1003, this.barWidth * this.heroProgress, this.barHeight);
+        this.heroProgressBar.fillRect(200 - this.barWidth / 2, 1158, this.barWidth * this.heroProgress, this.barHeight);
 
         if (this.heroProgress >= 1) {
           // this.heroProgressBar.clear()
@@ -413,19 +422,23 @@ export class Game extends Scene {
         this.opponentProgress += 1 / (duration * 50);
         this.opponentProgressBar.clear();
         this.opponentProgressBar.fillStyle(0xff0000, 1);
-        this.opponentProgressBar.fillRect(Number(this.game.config.width) - 200 - this.barWidth / 2, 1003, this.barWidth * this.opponentProgress, this.barHeight);
+        this.opponentProgressBar.fillRect(Number(this.game.config.width) - 200 - this.barWidth / 2, 1158, this.barWidth * this.opponentProgress, this.barHeight);
 
         if (this.opponentProgress >= 1) {
           // this.opponentProgressBar.clear()
           this.opponentProgress = 0
           // this.opponentProgressBarBg.visible = false
           this.opponentTimer.destroy()
-          let q = this.getRandomItem(this.questions)
+          let q = this.getRandomItem(this.getRandomItem(this.questions))
           const params = new URLSearchParams(window.location.search);
           const bot_vocab_accuracy = params.get('bot_vocab_accuracy') ?? 0.5;
           if (!this.isGameEnded) {
             this.imgOpponentThinking!.setAlpha(0);
             if (Math.random() < Math.min(Number(bot_vocab_accuracy), 1)) {
+
+              this.opponentBasePower += 50
+              this.opponentPowerTxt.setText("+ " + this.opponentBasePower)
+
               if (this.questionHistoryOpponent.length > 0 && this.questionHistoryOpponent[this.questionHistoryOpponent.length - 1].theme == q.theme) {
                 this.questionHistoryOpponent.push(q)
               } else {
@@ -434,8 +447,19 @@ export class Game extends Scene {
               }
               this.updateQuestionHistoryOpponent()
               this.isOpponentLastQuestionCorrect = true
+
+              // Break KO Chain
+              if (this.questionHistoryHero.length > 0 && this.questionHistoryHero[this.questionHistoryHero.length - 1].theme == q.theme) {
+                this.questionHistoryHero = []
+                this.updateQuestionHistoryHero()
+              }
+
               await this.opponentAttack(q.theme == this.theme);
             } else {
+
+              this.opponentBasePower = 0
+              this.opponentPowerTxt.setText("+ " + this.opponentBasePower)
+
               this.questionHistoryOpponent = []
               this.updateQuestionHistoryOpponent()
               this.isOpponentLastQuestionCorrect = false
@@ -472,7 +496,7 @@ export class Game extends Scene {
       0.1,
       0.1,
       - 90,
-      260
+      100
     ).setZoom(1);
     this.heroMove();
     await this.opponentMove();
@@ -482,7 +506,6 @@ export class Game extends Scene {
         this.timerX--;
         this.txtTimer.setText(this.timerX.toString().padStart(3, '0'))
         if (this.timerX <= 0) {
-          this.timeEventX.remove()
           if (this.imgHero!.x > 450) {
             this.heroWins();
           } else {
@@ -585,28 +608,13 @@ export class Game extends Scene {
     return new Promise((resolve) => {
       this.tweens.add({
         targets: this.gameCamera,
-        zoom: 1.4,
+        zoom: 1.3,
         duration: 500,
         ease: "Power2",
         onComplete: () => {
           resolve();
         },
       });
-
-      // const targetOffset = { x: -100, y: 400 };
-      // this.tweens.add({
-      //   targets: this.gameCamera!.followOffset,
-      //   x: targetOffset.x,
-      //   y: targetOffset.y,
-      //   duration: 500,
-      //   ease: "Power2",
-      //   onUpdate: () => {
-      //     this.gameCamera!.setFollowOffset(
-      //       this.gameCamera!.followOffset.x,
-      //       this.gameCamera!.followOffset.y
-      //     );
-      //   },
-      // });
     });
   }
 
@@ -615,25 +623,11 @@ export class Game extends Scene {
       this.tweens.add({
         targets: this.gameCamera,
         zoom: 1,
-        duration: 1000,
-        ease: "Linear",
+        scrollY: "+=300",
+        duration: 500,
+        ease: "Power2",
         onComplete: () => {
           resolve();
-        },
-      });
-
-      const targetOffset = { x: -100, y: 100 };
-      this.tweens.add({
-        targets: this.gameCamera!.followOffset,
-        x: targetOffset.x,
-        y: targetOffset.y,
-        duration: 100,
-        ease: "Linear",
-        onUpdate: () => {
-          this.gameCamera!.setFollowOffset(
-            this.gameCamera!.followOffset.x,
-            this.gameCamera!.followOffset.y
-          );
         },
       });
     });
@@ -722,8 +716,8 @@ export class Game extends Scene {
         .image(
           220,
           0,
-          this.questions[this.currentQuestion].options[i] ==
-            this.questions[this.currentQuestion].answer
+          this.currentQuestion.options[i] ==
+            this.currentQuestion.answer
             ? "imgCorrect"
             : "imgWrong"
         )
@@ -734,7 +728,7 @@ export class Game extends Scene {
         .setName("result");
 
       const buttonText = this.add
-        .text(0, -10, this.questions[this.currentQuestion].options[i], {
+        .text(0, -10, this.currentQuestion.options[i], {
           fontFamily: "Arial",
           fontSize: 50,
           color: "#fff",
@@ -769,18 +763,18 @@ export class Game extends Scene {
 
   async clickOption(optionIndex: number) {
     if (
-      this.questions[this.currentQuestion].options[optionIndex] ===
-      this.questions[this.currentQuestion].answer
+      this.currentQuestion.options[optionIndex] ===
+      this.currentQuestion.answer
     ) {
       const resultImg: GameObjects.Image =
         this.optionButtons[optionIndex].getByName("result");
       resultImg.setScale(0.25);
     } else {
-      const correctAnswerIndex = this.questions[
+      const correctAnswerIndex =
         this.currentQuestion
-      ].options.findIndex(
-        (option) => option === this.questions[this.currentQuestion].answer
-      );
+          .options.findIndex(
+            (option) => option === this.currentQuestion.answer
+          );
       const correctResultImg: GameObjects.Image =
         this.optionButtons[correctAnswerIndex].getByName("result");
       correctResultImg.setScale(0.25);
@@ -794,21 +788,35 @@ export class Game extends Scene {
     });
 
     if (
-      this.questions[this.currentQuestion].options[optionIndex] ===
-      this.questions[this.currentQuestion].answer
+      this.currentQuestion.options[optionIndex] ===
+      this.currentQuestion.answer
     ) {
-      if (this.questionHistoryHero.length > 0 && this.questionHistoryHero[this.questionHistoryHero.length - 1].theme == this.questions[this.currentQuestion].theme) {
-        this.questionHistoryHero.push(this.questions[this.currentQuestion])
+
+      this.heroBasePower += 50
+      this.heroPowerTxt.setText("+ " + this.heroBasePower)
+
+      if (this.questionHistoryHero.length > 0 && this.questionHistoryHero[this.questionHistoryHero.length - 1].theme == this.currentQuestion.theme) {
+        this.questionHistoryHero.push(this.currentQuestion)
       } else {
         this.questionHistoryHero = []
-        this.questionHistoryHero.push(this.questions[this.currentQuestion])
+        this.questionHistoryHero.push(this.currentQuestion)
       }
-
       this.updateQuestionHistoryHero()
       this.isHeroLastQuestionCorrect = true
-      // await this.cameraZoomIn()
+
+      // break KO Chain
+      if (this.questionHistoryOpponent.length > 0 && this.questionHistoryOpponent[this.questionHistoryOpponent.length - 1].theme == this.currentQuestion.theme) {
+        this.questionHistoryOpponent = []
+        this.updateQuestionHistoryOpponent()
+      }
+
       await this.heroAttack();
+
     } else {
+
+      this.heroBasePower = 0
+      this.heroPowerTxt.setText("+ " + this.heroBasePower)
+
       this.questionHistoryHero = []
       this.updateQuestionHistoryHero()
       this.isHeroLastQuestionCorrect = false
@@ -863,31 +871,41 @@ export class Game extends Scene {
     await this.timeDelay(500);
     await this.destroyQuestion()
 
-    let basePower = this.questions[this.currentQuestion].theme == this.theme ? 200 : 100
+    let power = this.heroBasePower
+
+    if (this.currentQuestion.theme == this.theme) {
+      this.txtHero?.setAlpha(1)
+      power += 150
+    } else {
+      power += 50
+    }
+
     if (this.questionHistoryHero.length == 3 && this.hasSameTheme(this.questionHistoryHero)) {
-      basePower = 3 * basePower
+      power = 1450 - this.imgHero!.x
       this.questionHistoryHero = []
       await this.chainAttackAnimation(this.imgHero, this.questionHistoryImagesHero)
       this.sptEnergyHero?.setAlpha(1)
       await this.timeDelay(1000);
-    } else if (this.questions[this.currentQuestion].theme == this.theme) {
-      this.txtHero?.setAlpha(1)
-    }
-    let power = basePower
-    if (this.imgHero!.x < -250) {
-      power = basePower + 400
-    } else if (this.imgHero!.x < 0) {
-      power = basePower + 300
-    } else if (this.imgHero!.x < 200) {
-      power = basePower + 200
-    } else if (this.imgHero!.x < 350) {
-      power = basePower + 100
-    } else if (this.imgHero!.x < 450) {
-      power = basePower
     } else {
-      power = basePower
+      // Advantage of weekness
+      if (this.imgHero!.x < -250) {
+        power += 200
+      } else if (this.imgHero!.x < 0) {
+        power += 150
+      } else if (this.imgHero!.x < 200) {
+        power += 100
+      } else if (this.imgHero!.x < 350) {
+        power += 50
+      } else if (this.imgHero!.x < 450) {
+        //
+      } else {
+        //
+      }
     }
 
+    power = Math.min(power, 1450 - this.imgHero!.x)
+
+    await this.cameraZoomIn()
     this.sptDustHero!.play("animDust");
     this.sptDustOpponent!.play("animDust2");
     if (this.imgMaskHero) {
@@ -917,6 +935,7 @@ export class Game extends Scene {
     if (this.opponentTimer && !this.isGameEnded) {
       this.opponentTimer.paused = false
     }
+    this.cameraZoomOut()
   }
 
   async chainAttackAnimation(player, historyImages): Promise<void> {
@@ -944,31 +963,41 @@ export class Game extends Scene {
     this.questionBubble?.setAlpha(0.5);
     this.optionButtons.forEach((option) => { option.setAlpha(0.5), option.getByName("image").removeInteractive() });
 
-    let basePower = isX2 ? 200 : 100
+    let power = this.opponentBasePower
+
+    if (isX2) {
+      this.txtOpponent?.setAlpha(1)
+      power += 150
+    } else {
+      power += 50
+    }
+
     if (this.questionHistoryOpponent.length == 3 && this.hasSameTheme(this.questionHistoryOpponent)) {
-      basePower = 2.5 * basePower
+      power = this.imgHero!.x + 550
       this.questionHistoryOpponent = []
       await this.chainAttackAnimation(this.imgOpponent, this.questionHistoryImagesOpponent)
       this.sptEnergyOpponent?.setAlpha(1)
       await this.timeDelay(1000);
-    } else if (isX2) {
-      this.txtOpponent?.setAlpha(1)
+    }
+    else {
+      // Advantage of weekness
+      if (this.imgHero!.x > 1150) {
+        power += 200
+      } else if (this.imgHero!.x > 900) {
+        power += 150
+      } else if (this.imgHero!.x > 700) {
+        power += 100
+      } else if (this.imgHero!.x > 550) {
+        power += 50
+      } else if (this.imgHero!.x > 450) {
+        //
+      } else {
+        //
+      }
     }
 
-    let power = basePower
-    if (this.imgHero!.x > 1150) {
-      power = basePower + 400
-    } else if (this.imgHero!.x > 900) {
-      power = basePower + 300
-    } else if (this.imgHero!.x > 700) {
-      power = basePower + 200
-    } else if (this.imgHero!.x > 550) {
-      power = basePower + 100
-    } else if (this.imgHero!.x > 450) {
-      power = basePower
-    } else {
-      power = basePower
-    }
+    power = Math.min(power, this.imgHero!.x + 550)
+
 
     this.sptDustOpponent!.play("animDust");
     this.sptDustHero!.play("animDust2");
@@ -1010,7 +1039,7 @@ export class Game extends Scene {
       .setDepth(100)
       .setScale(0.9);
     const imgQuestionImage = this.add
-      .image(0, -400, this.questions[this.currentQuestion].questionImg)
+      .image(0, -400, this.currentQuestion.questionImg)
       .setDepth(100)
       .setScale(0.4);
     this.questionBubble = this.add
@@ -1024,7 +1053,7 @@ export class Game extends Scene {
   }
 
   cardsChoice() {
-    const randomItems = this.questions.sort(() => Math.random() - 0.5).slice(0, 3);
+    const randomItems = this.questions.map(category => category[Math.floor(Math.random() * category.length)]);
     randomItems.forEach((element, i) => {
       const imgCard = this.add
         .image(0, 0, "imgCard")
@@ -1062,7 +1091,7 @@ export class Game extends Scene {
         this.questionChoices.forEach(elementx => {
           elementx.destroy()
         });
-        this.currentQuestion = this.questions.findIndex((question) => question.id === element.id);
+        this.currentQuestion = element;
         console.log(this.currentQuestion)
         await this.createQuestion();
         this.createAnswerPanel();
@@ -1072,6 +1101,7 @@ export class Game extends Scene {
   }
 
   heroWins() {
+    this.timeEventX.remove()
     this.imgOpponentThinking!.setAlpha(0);
     this.isGameEnded = true;
     this.destroyQuestion()
@@ -1109,6 +1139,7 @@ export class Game extends Scene {
   }
 
   opponentWins() {
+    this.timeEventX.remove()
     this.imgOpponentThinking!.setAlpha(0);
     this.isGameEnded = true;
     this.destroyQuestion()
@@ -1154,14 +1185,14 @@ export class Game extends Scene {
         .image(0, 0, element.questionImg)
         .setDepth(100)
         .setScale(0.1).setScrollFactor(0);
-      const imgResult = this.add
-        .image(20, 30, "imgCorrect")
-        .setDepth(100)
-        .setScale(0.1).setScrollFactor(0);
+      // const imgResult = this.add
+      //   .image(20, 30, "imgCorrect")
+      //   .setDepth(100)
+      //   .setScale(0.1).setScrollFactor(0);
       const questionContainer = this.add
         .container(i * 100 + 100, 1095, [
           imgQuestionImage,
-          imgResult
+          // imgResult
         ])
       this.questionHistoryImagesHero.push(questionContainer)
     });
@@ -1177,14 +1208,14 @@ export class Game extends Scene {
         .image(0, 0, element.questionImg)
         .setDepth(100)
         .setScale(0.1).setScrollFactor(0);
-      const imgResult = this.add
-        .image(20, 30, "imgCorrect")
-        .setDepth(100)
-        .setScale(0.1).setScrollFactor(0);
+      // const imgResult = this.add
+      //   .image(20, 30, "imgCorrect")
+      //   .setDepth(100)
+      //   .setScale(0.1).setScrollFactor(0);
       const questionContainer = this.add
         .container(i * 100 + Number(this.game.config.width) - 300, 1095, [
           imgQuestionImage,
-          imgResult
+          // imgResult
         ])
       this.questionHistoryImagesOpponent.push(questionContainer)
     });
