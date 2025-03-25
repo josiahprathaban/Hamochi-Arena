@@ -889,9 +889,9 @@ export class Game extends Scene {
     } else {
       // Advantage of weekness
       if (this.imgHero!.x < -250) {
-        power += 200
+        power += 400
       } else if (this.imgHero!.x < 0) {
-        power += 150
+        power += 200
       } else if (this.imgHero!.x < 200) {
         power += 100
       } else if (this.imgHero!.x < 350) {
@@ -982,9 +982,9 @@ export class Game extends Scene {
     else {
       // Advantage of weekness
       if (this.imgHero!.x > 1150) {
-        power += 200
+        power += 400
       } else if (this.imgHero!.x > 900) {
-        power += 150
+        power += 200
       } else if (this.imgHero!.x > 700) {
         power += 100
       } else if (this.imgHero!.x > 550) {
