@@ -195,7 +195,7 @@ export class Game extends Scene {
       .setAlpha(0);;
     this.sptEnergyHero.play("animPlayerEnergy");
     this.txtHero = this.add
-      .text(0, 0, "X2", {
+      .text(0, 0, "", {
         fontFamily: "Arial",
         fontSize: "32px",
         backgroundColor: "#a64245",
@@ -222,7 +222,7 @@ export class Game extends Scene {
       .setAlpha(0)
     this.sptEnergyOpponent.play("animPlayerEnergy");
     this.txtOpponent = this.add
-      .text(0, 0, "X2", {
+      .text(0, 0, "", {
         fontFamily: "Arial",
         fontSize: "32px",
         backgroundColor: "#a64245",
@@ -880,14 +880,16 @@ export class Game extends Scene {
     let power = this.heroBasePower
 
     if (this.currentQuestion.theme == this.theme) {
-      this.txtHero?.setAlpha(1)
+      this.txtHero.setText("X2")
       power += 250
     } else {
       power += 50
     }
 
     if (this.questionHistoryHero.length == 3 && this.hasSameTheme(this.questionHistoryHero)) {
-      power = 1450 - this.imgHero!.x
+      // power = 1450 - this.imgHero!.x
+      power += 450
+      this.txtHero.setText("X5")
       this.questionHistoryHero = []
       await this.chainAttackAnimation(this.imgHero, this.questionHistoryImagesHero)
       this.sptEnergyHero?.setAlpha(1)
@@ -910,7 +912,7 @@ export class Game extends Scene {
     }
 
     power = Math.min(power, 1450 - this.imgHero!.x)
-
+    this.txtHero?.setAlpha(1)
     await this.cameraZoomIn()
     this.sptDustHero!.play("animDust");
     this.sptDustOpponent!.play("animDust2");
@@ -976,14 +978,16 @@ export class Game extends Scene {
     let power = this.opponentBasePower
 
     if (isX2) {
-      this.txtOpponent?.setAlpha(1)
+      this.txtOpponent.setText("X2")
       power += 250
     } else {
       power += 50
     }
 
     if (this.questionHistoryOpponent.length == 3 && this.hasSameTheme(this.questionHistoryOpponent)) {
-      power = this.imgHero!.x + 550
+      // power = this.imgHero!.x + 550
+      power += 450
+      this.txtOpponent.setText("X5")
       this.questionHistoryOpponent = []
       await this.chainAttackAnimation(this.imgOpponent, this.questionHistoryImagesOpponent)
       this.sptEnergyOpponent?.setAlpha(1)
@@ -1007,7 +1011,7 @@ export class Game extends Scene {
     }
 
     power = Math.min(power, this.imgHero!.x + 550)
-
+    this.txtOpponent?.setAlpha(1)
     await this.cameraZoomIn()
     this.sptDustOpponent!.play("animDust");
     this.sptDustHero!.play("animDust2");
@@ -1079,7 +1083,7 @@ export class Game extends Scene {
         .setDepth(100)
         .setScale(0.35).setScrollFactor(0);
       const powerTxt = this.add
-        .text(70, -180, element.theme == this.theme ? "X2" : "X1", {
+        .text(70, -180, element.theme == this.theme ? "X2" : "", {
           fontFamily: "Arial",
           fontSize: "32px",
           backgroundColor: "#a64245",
