@@ -46,7 +46,7 @@ export class Game extends Scene {
   txtOpponent: GameObjects.Text;
   ring: GameObjects.Image;
   themeTxtGrp: Array<any>;
-  timerX: number = 60;
+  timerX: number = 99;
   txtTimer: GameObjects.Text;
   timeEventX: Phaser.Time.TimerEvent;
   themes: any;
@@ -57,12 +57,17 @@ export class Game extends Scene {
   heroBasePower: number = 0;
   heroPowerTxt: GameObjects.Text;
   opponentPowerTxt: GameObjects.Text;
+  difficulty: number = 0;
 
   constructor() {
     super("Game");
   }
 
   async create() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('difficulty') && params.get('difficulty') == "1") {
+      this.difficulty = 1
+    }
     this.questions = this.shuffleArray(questions)
     this.themes = ["Fruits", "Animals", "Stationery"]
 
@@ -160,7 +165,7 @@ export class Game extends Scene {
       )
       .setScrollFactor(0);
 
-    this.txtTimer = this.add.text(Number(this.game.config.width) / 2, 1080, this.timerX.toString().padStart(3, '0'), {
+    this.txtTimer = this.add.text(Number(this.game.config.width) / 2, 1080, this.timerX.toString().padStart(2, '0'), {
       fontSize: '64px',
       fontFamily: "Arial",
       color: '#ffffff',
@@ -288,16 +293,16 @@ export class Game extends Scene {
     ).setScrollFactor(0)
 
     this.heroPowerTxt = this.add
-      .text(150, 990, "+ " + this.heroBasePower, {
+      .text(60, 990, "COMBO x" + this.heroBasePower / 50, {
         fontFamily: "Arial",
         fontSize: "32px",
       })
 
-    this.add
-      .sprite(80, 970, "imgPower")
-      .setOrigin(0)
-      .setDepth(2000)
-      .setScale(0.25)
+    // this.add
+    //   .sprite(80, 970, "imgPower")
+    //   .setOrigin(0)
+    //   .setDepth(2000)
+    //   .setScale(0.25)
 
     this.opponentProgressBar = this.add.graphics().setDepth(999).setScrollFactor(0);
 
@@ -308,16 +313,16 @@ export class Game extends Scene {
     ).setScrollFactor(0)
 
     this.opponentPowerTxt = this.add
-      .text(Number(this.game.config.width) - 150, 990, "+ " + this.opponentBasePower, {
+      .text(Number(this.game.config.width) - 60, 990, "COMBO x" + this.opponentBasePower / 50, {
         fontFamily: "Arial",
         fontSize: "32px",
       }).setOrigin(1, 0)
 
-    this.add
-      .sprite(Number(this.game.config.width) - 80, 970, "imgPower")
-      .setOrigin(1,0)
-      .setDepth(2000)
-      .setScale(0.25)
+    // this.add
+    //   .sprite(Number(this.game.config.width) - 80, 970, "imgPower")
+    //   .setOrigin(1,0)
+    //   .setDepth(2000)
+    //   .setScale(0.25)
 
 
   }
@@ -388,7 +393,7 @@ export class Game extends Scene {
 
   startHeroTimer(duration: number) {
     // if (Math.random() < 0.5)
-    this.updateTheme()
+    // this.updateTheme()
     // this.heroProgressBarBg.visible = true
     this.heroTimer = this.time.addEvent({
       delay: 20,
@@ -430,14 +435,14 @@ export class Game extends Scene {
           // this.opponentProgressBarBg.visible = false
           this.opponentTimer.destroy()
           let q = this.getRandomItem(this.getRandomItem(this.questions))
-          const params = new URLSearchParams(window.location.search);
-          const bot_vocab_accuracy = params.get('bot_vocab_accuracy') ?? 0.5;
+          const bot_vocab_accuracy = this.difficulty == 1 ? 1 : 0.5;
+          // await this.timeDelay(this.difficulty == 1 ? 3000 : 5000);
           if (!this.isGameEnded) {
             this.imgOpponentThinking!.setAlpha(0);
             if (Math.random() < Math.min(Number(bot_vocab_accuracy), 1)) {
 
               this.opponentBasePower += 50
-              this.opponentPowerTxt.setText("+ " + this.opponentBasePower)
+              this.opponentPowerTxt.setText("COMBO x" + this.opponentBasePower / 50)
 
               if (this.questionHistoryOpponent.length > 0 && this.questionHistoryOpponent[this.questionHistoryOpponent.length - 1].theme == q.theme) {
                 this.questionHistoryOpponent.push(q)
@@ -458,7 +463,7 @@ export class Game extends Scene {
             } else {
 
               this.opponentBasePower = 0
-              this.opponentPowerTxt.setText("+ " + this.opponentBasePower)
+              this.opponentPowerTxt.setText("COMBO x" + this.opponentBasePower / 50)
 
               this.questionHistoryOpponent = []
               this.updateQuestionHistoryOpponent()
@@ -504,7 +509,7 @@ export class Game extends Scene {
       delay: 1000, // 1 second
       callback: () => {
         this.timerX--;
-        this.txtTimer.setText(this.timerX.toString().padStart(3, '0'))
+        this.txtTimer.setText(this.timerX.toString().padStart(2, '0'))
         if (this.timerX <= 0) {
           if (this.imgHero!.x > 450) {
             this.heroWins();
@@ -793,7 +798,7 @@ export class Game extends Scene {
     ) {
 
       this.heroBasePower += 50
-      this.heroPowerTxt.setText("+ " + this.heroBasePower)
+      this.heroPowerTxt.setText("COMBO x" + this.heroBasePower / 50)
 
       if (this.questionHistoryHero.length > 0 && this.questionHistoryHero[this.questionHistoryHero.length - 1].theme == this.currentQuestion.theme) {
         this.questionHistoryHero.push(this.currentQuestion)
@@ -815,7 +820,7 @@ export class Game extends Scene {
     } else {
 
       this.heroBasePower = 0
-      this.heroPowerTxt.setText("+ " + this.heroBasePower)
+      this.heroPowerTxt.setText("COMBO x" + this.heroBasePower / 50)
 
       this.questionHistoryHero = []
       this.updateQuestionHistoryHero()
@@ -847,6 +852,7 @@ export class Game extends Scene {
     this.questionChoices.forEach(elementx => {
       elementx.destroy()
     });
+    this.questionChoices = [];
   }
 
   async heroMove() {
@@ -854,7 +860,7 @@ export class Game extends Scene {
   }
 
   async opponentMove() {
-    this.startOpponentTimer(this.isOpponentLastQuestionCorrect ? 5 : 7)
+    this.startOpponentTimer(this.isOpponentLastQuestionCorrect ? 4 : 6)
   }
 
   async heroAttack() {
@@ -875,7 +881,7 @@ export class Game extends Scene {
 
     if (this.currentQuestion.theme == this.theme) {
       this.txtHero?.setAlpha(1)
-      power += 150
+      power += 250
     } else {
       power += 50
     }
@@ -891,7 +897,7 @@ export class Game extends Scene {
       if (this.imgHero!.x < -250) {
         power += 400
       } else if (this.imgHero!.x < 0) {
-        power += 200
+        power += 300
       } else if (this.imgHero!.x < 200) {
         power += 100
       } else if (this.imgHero!.x < 350) {
@@ -960,6 +966,10 @@ export class Game extends Scene {
     if (this.heroTimer) {
       this.heroTimer.paused = true
     }
+    this.questionChoices.forEach(elementx => {
+      elementx.setAlpha(0.5)
+      elementx.getByName("image").removeInteractive()
+    });
     this.questionBubble?.setAlpha(0.5);
     this.optionButtons.forEach((option) => { option.setAlpha(0.5), option.getByName("image").removeInteractive() });
 
@@ -967,7 +977,7 @@ export class Game extends Scene {
 
     if (isX2) {
       this.txtOpponent?.setAlpha(1)
-      power += 150
+      power += 250
     } else {
       power += 50
     }
@@ -984,7 +994,7 @@ export class Game extends Scene {
       if (this.imgHero!.x > 1150) {
         power += 400
       } else if (this.imgHero!.x > 900) {
-        power += 200
+        power += 300
       } else if (this.imgHero!.x > 700) {
         power += 100
       } else if (this.imgHero!.x > 550) {
@@ -998,7 +1008,7 @@ export class Game extends Scene {
 
     power = Math.min(power, this.imgHero!.x + 550)
 
-
+    await this.cameraZoomIn()
     this.sptDustOpponent!.play("animDust");
     this.sptDustHero!.play("animDust2");
     if (this.imgMaskHero) {
@@ -1028,9 +1038,14 @@ export class Game extends Scene {
       this.heroTimer.paused = false
     }
     if (!this.isGameEnded) {
+      this.questionChoices.forEach(elementx => {
+        elementx.setAlpha(1)
+        elementx.getByName("image").setInteractive({ useHandCursor: true })
+      });
       this.questionBubble?.setAlpha(1);
       this.optionButtons.forEach((option) => { option.setAlpha(1), option.getByName("image").setInteractive({ useHandCursor: true }) });
     }
+    this.cameraZoomOut()
   }
 
   async createQuestion() {
@@ -1058,7 +1073,7 @@ export class Game extends Scene {
       const imgCard = this.add
         .image(0, 0, "imgCard")
         .setDepth(100)
-        .setScale(1).setScrollFactor(0);
+        .setScale(1).setScrollFactor(0).setName("image");;
       const imgQuestionImage = this.add
         .image(0, 0, element.questionImg)
         .setDepth(100)
@@ -1091,6 +1106,7 @@ export class Game extends Scene {
         this.questionChoices.forEach(elementx => {
           elementx.destroy()
         });
+        this.questionChoices = [];
         this.currentQuestion = element;
         console.log(this.currentQuestion)
         await this.createQuestion();
