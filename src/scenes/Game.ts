@@ -1,7 +1,7 @@
 // V4 Choice of attack
 
 import { GameObjects, Scene } from "phaser";
-import questions from "../questions.json";
+import questions from "../questionsX.json";
 
 export class Game extends Scene {
   background: GameObjects.Image | undefined;
@@ -23,7 +23,7 @@ export class Game extends Scene {
   enterBtn: GameObjects.Text;
   prompt: GameObjects.Text;
   isGameEnded: Boolean = false;
-  theme: String
+  sponsor: String
   barWidth: number = 275;
   barHeight: number = 5;
   heroProgressBar: GameObjects.Graphics;
@@ -37,7 +37,6 @@ export class Game extends Scene {
   questions: Array<any>;
   isHeroLastQuestionCorrect: Boolean = true
   isOpponentLastQuestionCorrect: Boolean = true
-  questionChoices: Array<GameObjects.Container> = [];
   questionHistoryHero: Array<any> = []
   questionHistoryImagesHero: Array<GameObjects.Container> = [];
   txtHero: GameObjects.Text;
@@ -58,6 +57,12 @@ export class Game extends Scene {
   heroPowerTxt: GameObjects.Text;
   opponentPowerTxt: GameObjects.Text;
   difficulty: number = 0;
+  imgHeroAura: GameObjects.Image;
+  imgOpponentAura: GameObjects.Image;
+  isOpponentFirstKO: Boolean = true
+  isHeroFirstKO: Boolean = true
+  sptDizzyHero: GameObjects.Sprite;
+  sptDizzyOpponent: GameObjects.Sprite;
 
   constructor() {
     super("Game");
@@ -69,7 +74,6 @@ export class Game extends Scene {
       this.difficulty = 1
     }
     this.questions = this.shuffleArray(questions)
-    this.themes = ["Fruits", "Animals", "Stationery"]
 
     // animations
     this.anims.create({
@@ -94,6 +98,14 @@ export class Game extends Scene {
       frameRate: 5,
       repeat: -1,
     });
+    this.anims.create({
+      key: "animDizzy",
+      frames: this.anims.generateFrameNumbers("sptDizzyAnim", {
+        frames: [0, 1, 0, 1],
+      }),
+      frameRate: 4,
+      repeat: -1,
+    });
 
     this.background = this.add
       .image(540, 0, "backgroundX")
@@ -109,73 +121,15 @@ export class Game extends Scene {
       )
       .setScrollFactor(0);
 
-    this.add
-      .rectangle(
-        100,
-        1095,
-        80,
-        100,
-        0xffffff
-      )
-      .setScrollFactor(0);
-    this.add
-      .rectangle(
-        200,
-        1095,
-        80,
-        100,
-        0xffffff
-      )
-      .setScrollFactor(0);
-    this.add
-      .rectangle(
-        300,
-        1095,
-        80,
-        100,
-        0xffffff
-      )
-      .setScrollFactor(0);
-
-    this.add
-      .rectangle(
-        Number(this.game.config.width) - 100,
-        1095,
-        80,
-        100,
-        0xffffff
-      )
-      .setScrollFactor(0);
-    this.add
-      .rectangle(
-        Number(this.game.config.width) - 200,
-        1095,
-        80,
-        100,
-        0xffffff
-      )
-      .setScrollFactor(0);
-    this.add
-      .rectangle(
-        Number(this.game.config.width) - 300,
-        1095,
-        80,
-        100,
-        0xffffff
-      )
-      .setScrollFactor(0);
-
-    this.txtTimer = this.add.text(Number(this.game.config.width) / 2, 1080, this.timerX.toString().padStart(2, '0'), {
-      fontSize: '64px',
-      fontFamily: "Arial",
-      color: '#ffffff',
-      fontStyle: "bold"
-    }).setOrigin(0.5);
-
-
     this.imgHero = this.add
-      .image(200, 740, "imgHero")
+      .image(200, 720, "imgHero")
       .setDepth(100)
+      .setScale(1.5)
+      .setFlipX(true)
+      .setAlpha(0);
+    this.imgHeroAura = this.add
+      .image(200, 720, "imgAuraStrength")
+      .setDepth(99)
       .setScale(1.5)
       .setFlipX(true)
       .setAlpha(0);
@@ -192,8 +146,15 @@ export class Game extends Scene {
       .setDepth(99)
       .setScale(1.2)
       .setFlipX(true)
-      .setAlpha(0);;
+      .setAlpha(0);
     this.sptEnergyHero.play("animPlayerEnergy");
+    this.sptDizzyHero = this.add
+      .sprite(0, 0, "sptDizzyAnim")
+      .setScale(1.2)
+      .setDepth(101)
+      .setAlpha(0);
+    this.sptDizzyHero.play("animDizzy");
+
     this.txtHero = this.add
       .text(0, 0, "", {
         fontFamily: "Arial",
@@ -204,10 +165,17 @@ export class Game extends Scene {
 
 
     this.imgOpponent = this.add
-      .image(Number(this.game.config.width) - 200, 740, "imgOpponent")
+      .image(Number(this.game.config.width) - 200, 720, "imgOpponent")
       .setDepth(99)
       .setScale(1.5)
       .setAlpha(0);
+
+    this.imgOpponentAura = this.add
+      .image(Number(this.game.config.width) - 200, 720, "imgAuraLuck")
+      .setDepth(98)
+      .setScale(1.5)
+      .setAlpha(0);
+
     this.sptDustOpponent = this.add
       .sprite(0, 0, "sptDust")
       .setOrigin(0)
@@ -221,6 +189,13 @@ export class Game extends Scene {
       .setScale(1.2)
       .setAlpha(0)
     this.sptEnergyOpponent.play("animPlayerEnergy");
+    this.sptDizzyOpponent = this.add
+      .sprite(0, 0, "sptDizzyAnim")
+      .setScale(1.2)
+      .setDepth(101)
+      .setAlpha(0);
+    this.sptDizzyOpponent.play("animDizzy");
+
     this.txtOpponent = this.add
       .text(0, 0, "", {
         fontFamily: "Arial",
@@ -246,9 +221,6 @@ export class Game extends Scene {
       yoyo: true,
     });
 
-    this.gameCamera = this.cameras.add(0, 0, Number(this.game.config.width), Number(this.game.config.height) / 2);
-    this.gameCamera.setBounds(-760, 0, 2600, Number(this.game.config.height) / 2)
-
     this.prompt = this.add
       .text(Number(this.game.config.width) / 2, 1550, "", {
         fontFamily: "Arial",
@@ -259,16 +231,44 @@ export class Game extends Scene {
       .setOrigin(0.5)
       .setScrollFactor(0);
 
-    this.add
-      .text(390, 110, "theme", {
-        fontFamily: "Arial",
-        fontSize: "32px",
-      }).setOrigin(0.5)
     this.updateTheme()
 
+    this.add
+      .rectangle(
+        Number(this.game.config.width) / 2,
+        -500,
+        2600,
+        1000,
+        0xf9dcb0
+      )
+
+    this.gameCamera = this.cameras.add(0, 500, Number(this.game.config.width), 0);
+    this.gameCamera.setBounds(-760, 0, 2600, Number(this.game.config.height) / 2)
+    this.gameCamera.setZoom(0.5)
+    this.tweens.add({
+      targets: this.gameCamera,
+      zoom: 1,
+      y: 0,
+      delay: 1500,
+      duration: 1000,
+      ease: "Power2",
+      onComplete: () => {
+        this.gameCamera!.setSize(Number(this.game.config.width), Number(this.game.config.height) / 2)
+      },
+    });
+
+    await this.timeDelay(3000);
     this.heroAppears();
     await this.timeDelay(1000);
     this.opponentAppears();
+    await this.timeDelay(500);
+
+    this.txtTimer = this.add.text(Number(this.game.config.width) / 2, 1080, this.timerX.toString().padStart(2, '0'), {
+      fontSize: '64px',
+      fontFamily: "Arial",
+      color: '#ffffff',
+      fontStyle: "bold"
+    }).setOrigin(0.5);
 
     this.enterBtn = this.add
       .text(Number(this.game.config.width) / 2, 1680, "Enter the Ring", {
@@ -293,16 +293,18 @@ export class Game extends Scene {
     ).setScrollFactor(0)
 
     this.heroPowerTxt = this.add
-      .text(60, 990, "COMBO x" + this.heroBasePower / 50, {
+      .text(60, 990, "", {
         fontFamily: "Arial",
         fontSize: "32px",
       })
 
-    // this.add
-    //   .sprite(80, 970, "imgPower")
-    //   .setOrigin(0)
-    //   .setDepth(2000)
-    //   .setScale(0.25)
+    for (let index = 0; index < 5; index++) {
+      this.add
+        .sprite(50 + (58 * index), 1060, "imgPower").setAlpha(0.5)
+        .setOrigin(0)
+        .setDepth(99)
+        .setScale(0.25).setTint(0x000000)
+    }
 
     this.opponentProgressBar = this.add.graphics().setDepth(999).setScrollFactor(0);
 
@@ -313,34 +315,38 @@ export class Game extends Scene {
     ).setScrollFactor(0)
 
     this.opponentPowerTxt = this.add
-      .text(Number(this.game.config.width) - 60, 990, "COMBO x" + this.opponentBasePower / 50, {
+      .text(Number(this.game.config.width) - 60, 990, "", {
         fontFamily: "Arial",
         fontSize: "32px",
       }).setOrigin(1, 0)
 
-    // this.add
-    //   .sprite(Number(this.game.config.width) - 80, 970, "imgPower")
-    //   .setOrigin(1,0)
-    //   .setDepth(2000)
-    //   .setScale(0.25)
+    for (let index = 0; index < 5; index++) {
+      this.add
+        .sprite(Number(this.game.config.width) - 50 - (58 * index), 1060, "imgPower").setAlpha(0.5)
+        .setOrigin(1, 0)
+        .setDepth(99)
+        .setScale(0.25).setTint(0x000000)
+    }
+
 
 
   }
 
   updateTheme() {
-    this.theme = this.themes[Math.floor(Math.random() * this.themes.length)];
+    this.sponsor = "Hamochi";
     this.animateScrollingText(-420, 620);
 
     this.displayImg?.destroy()
     this.displayImg = this.add
-      .image(540, 90, "img" + this.theme)
-      .setOrigin(0.5, 0).setScrollFactor(1).setScale(0.6).setAlpha(0.6);
+      .image(540, 90, "img" + this.sponsor)
+      .setOrigin(0.5, 0).setScrollFactor(1).setScale(0.5).setAlpha(0.8);
 
     this.displayTxt?.destroy()
     this.displayTxt = this.add
-      .text(Number(this.game.config.width) / 2, 310, this.theme.toString(), {
+      .text(Number(this.game.config.width) / 2, 385, "Hamochi Sdn Bhd", {
         fontFamily: "Arial",
-        fontSize: "64px",
+        fontSize: "36px",
+        fontStyle: 'bold'
       }).setOrigin(0.5)
 
 
@@ -351,22 +357,20 @@ export class Game extends Scene {
       text.destroy()
     })
     this.texts = []
-    const rectWidth = 1920; // Width of the scrolling area
-    const rectHeight = 50; // Height of the scrolling area
-    const textSpacing = 200; // Space between each instance of text
-    const speed = 50000; // Duration for text to move across
+    const rectWidth = 1920;
+    const rectHeight = 50;
+    const textSpacing = 200;
+    const speed = 50000;
 
-    // Create a mask
     let maskShape = this.add.graphics();
     maskShape.fillRect(startX, startY, rectWidth, rectHeight);
     let mask = maskShape.createGeometryMask();
 
-    let numTexts = Math.ceil(rectWidth / textSpacing) + 2; // Extra text for smooth looping
+    let numTexts = Math.ceil(rectWidth / textSpacing) + 2;
 
-    // Create multiple text instances (double the amount for a smooth cycle)
     for (let i = 0; i < numTexts * 2; i++) {
       let textX = startX + i * textSpacing;
-      let text = this.add.text(textX, startY, this.theme.toString(), {
+      let text = this.add.text(textX, startY, this.sponsor.toString(), {
         fontFamily: "Arial",
         fontSize: "32px",
         fontStyle: "bold"
@@ -374,7 +378,6 @@ export class Game extends Scene {
       this.texts.push(text);
     }
 
-    // Scroll animation
     this.tweens.add({
       targets: this.texts,
       x: `-=${textSpacing * numTexts}`,
@@ -409,8 +412,9 @@ export class Game extends Scene {
           this.heroProgress = 0
           // this.heroProgressBarBg.visible = false
           this.heroTimer.destroy()
-          this.cardsChoice()
-
+          this.currentQuestion = this.getRandomItem(this.questions)
+          await this.createQuestion();
+          this.createAnswerPanel();
         }
       },
       callbackScope: this,
@@ -425,16 +429,20 @@ export class Game extends Scene {
       repeat: duration * 50,
       callback: async () => {
         this.opponentProgress += 1 / (duration * 50);
-        this.opponentProgressBar.clear();
-        this.opponentProgressBar.fillStyle(0xff0000, 1);
-        this.opponentProgressBar.fillRect(Number(this.game.config.width) - 200 - this.barWidth / 2, 1158, this.barWidth * this.opponentProgress, this.barHeight);
+
+        if (this.opponentProgress <= 0.5) {
+          this.opponentProgressBar.clear();
+          this.opponentProgressBar.fillStyle(0xff0000, 1);
+          this.opponentProgressBar.fillRect(Number(this.game.config.width) - 200 - this.barWidth / 2, 1158, this.barWidth * this.opponentProgress * 2, this.barHeight);
+
+        }
 
         if (this.opponentProgress >= 1) {
           // this.opponentProgressBar.clear()
           this.opponentProgress = 0
           // this.opponentProgressBarBg.visible = false
           this.opponentTimer.destroy()
-          let q = this.getRandomItem(this.getRandomItem(this.questions))
+          let q = this.getRandomItem(this.questions)
           const bot_vocab_accuracy = this.difficulty == 1 ? 1 : 0.5;
           // await this.timeDelay(this.difficulty == 1 ? 3000 : 5000);
           if (!this.isGameEnded) {
@@ -442,28 +450,18 @@ export class Game extends Scene {
             if (Math.random() < Math.min(Number(bot_vocab_accuracy), 1)) {
 
               this.opponentBasePower += 50
-              this.opponentPowerTxt.setText("COMBO x" + this.opponentBasePower / 50)
+              if (this.opponentBasePower >= 100)
+                this.opponentPowerTxt.setText("COMBO x" + this.opponentBasePower / 50)
 
-              if (this.questionHistoryOpponent.length > 0 && this.questionHistoryOpponent[this.questionHistoryOpponent.length - 1].theme == q.theme) {
-                this.questionHistoryOpponent.push(q)
-              } else {
-                this.questionHistoryOpponent = []
-                this.questionHistoryOpponent.push(q)
-              }
+              this.questionHistoryOpponent.push(q)
               this.updateQuestionHistoryOpponent()
               this.isOpponentLastQuestionCorrect = true
 
-              // Break KO Chain
-              if (this.questionHistoryHero.length > 0 && this.questionHistoryHero[this.questionHistoryHero.length - 1].theme == q.theme) {
-                this.questionHistoryHero = []
-                this.updateQuestionHistoryHero()
-              }
-
-              await this.opponentAttack(q.theme == this.theme);
+              await this.opponentAttack();
             } else {
 
               this.opponentBasePower = 0
-              this.opponentPowerTxt.setText("COMBO x" + this.opponentBasePower / 50)
+              this.opponentPowerTxt.setText("")
 
               this.questionHistoryOpponent = []
               this.updateQuestionHistoryOpponent()
@@ -476,8 +474,9 @@ export class Game extends Scene {
                 .setDepth(100)
                 .setScale(0.4)
                 .setFlipX(true);
-              await this.timeDelay(1000);
-              this.imgMaskOpponent.destroy();
+              this.sptDizzyOpponent.setAlpha(1)
+
+              await this.cameraZoomIn()
             }
             if (this.imgHero!.x < -500) {
               this.opponentWins();
@@ -533,6 +532,10 @@ export class Game extends Scene {
       this.sptEnergyHero!.y = this.imgHero!.y - 220;
       this.sptEnergyHero!.x = this.imgHero!.x - 180;
     }
+    if (this.sptDizzyHero && this.imgHero) {
+      this.sptDizzyHero!.y = this.imgHero!.y - 70;
+      this.sptDizzyHero!.x = this.imgHero!.x;
+    }
     if (this.txtHero && this.imgHero) {
       this.txtHero!.y = this.imgHero!.y - 100;
       this.txtHero!.x = this.imgHero!.x - 30;
@@ -540,6 +543,10 @@ export class Game extends Scene {
     if (this.imgMaskHero && this.imgHero) {
       this.imgMaskHero!.y = this.imgHero!.y;
       this.imgMaskHero!.x = this.imgHero!.x;
+    }
+    if (this.imgHeroAura && this.imgHero) {
+      // this.imgHeroAura!.y = this.imgHero!.y;
+      this.imgHeroAura!.x = this.imgHero!.x;
     }
     if (this.questionBubble && this.imgHero) {
       this.questionBubble.x = this.imgHero.x;
@@ -553,6 +560,10 @@ export class Game extends Scene {
       this.sptEnergyOpponent!.y = this.imgOpponent!.y - 220;
       this.sptEnergyOpponent!.x = this.imgOpponent!.x - 180;
     }
+    if (this.sptDizzyOpponent && this.imgOpponent) {
+      this.sptDizzyOpponent!.y = this.imgOpponent!.y - 70;
+      this.sptDizzyOpponent!.x = this.imgOpponent!.x;
+    }
     if (this.txtOpponent && this.imgOpponent) {
       this.txtOpponent!.y = this.imgOpponent!.y - 100;
       this.txtOpponent!.x = this.imgOpponent!.x - 30;
@@ -564,6 +575,10 @@ export class Game extends Scene {
     if (this.imgMaskOpponent && this.imgOpponent) {
       this.imgMaskOpponent!.y = this.imgOpponent!.y;
       this.imgMaskOpponent!.x = this.imgOpponent!.x;
+    }
+    if (this.imgOpponentAura && this.imgOpponent) {
+      // this.imgOpponentAura!.y = this.imgOpponent!.y;
+      this.imgOpponentAura!.x = this.imgOpponent!.x;
     }
   }
 
@@ -579,8 +594,9 @@ export class Game extends Scene {
 
   heroAppears() {
     this.imgHero?.setAlpha(1);
+    this.imgHeroAura?.setAlpha(0.7);
     this.tweens.add({
-      targets: [this.imgHero],
+      targets: [this.imgHero, this.imgHeroAura],
       alpha: 0,
       ease: "Linear",
       duration: 100,
@@ -591,8 +607,9 @@ export class Game extends Scene {
 
   opponentAppears() {
     this.imgOpponent?.setAlpha(1);
+    this.imgOpponentAura?.setAlpha(0.7);
     this.tweens.add({
-      targets: [this.imgOpponent],
+      targets: [this.imgOpponent, this.imgOpponentAura],
       alpha: 0,
       ease: "Linear",
       duration: 100,
@@ -798,33 +815,24 @@ export class Game extends Scene {
     ) {
 
       this.heroBasePower += 50
-      this.heroPowerTxt.setText("COMBO x" + this.heroBasePower / 50)
+      if (this.heroBasePower >= 100)
+        this.heroPowerTxt.setText("COMBO x" + this.heroBasePower / 50)
 
-      if (this.questionHistoryHero.length > 0 && this.questionHistoryHero[this.questionHistoryHero.length - 1].theme == this.currentQuestion.theme) {
-        this.questionHistoryHero.push(this.currentQuestion)
-      } else {
-        this.questionHistoryHero = []
-        this.questionHistoryHero.push(this.currentQuestion)
-      }
+      this.questionHistoryHero.push(this.currentQuestion)
       this.updateQuestionHistoryHero()
       this.isHeroLastQuestionCorrect = true
-
-      // break KO Chain
-      if (this.questionHistoryOpponent.length > 0 && this.questionHistoryOpponent[this.questionHistoryOpponent.length - 1].theme == this.currentQuestion.theme) {
-        this.questionHistoryOpponent = []
-        this.updateQuestionHistoryOpponent()
-      }
 
       await this.heroAttack();
 
     } else {
 
       this.heroBasePower = 0
-      this.heroPowerTxt.setText("COMBO x" + this.heroBasePower / 50)
+      this.heroPowerTxt.setText("")
 
       this.questionHistoryHero = []
       this.updateQuestionHistoryHero()
       this.isHeroLastQuestionCorrect = false
+
       if (this.imgMaskHero) {
         this.imgMaskHero.destroy();
       }
@@ -832,7 +840,10 @@ export class Game extends Scene {
         .image(0, 0, "imgMask6")
         .setDepth(100)
         .setScale(0.4);
-      await this.timeDelay(500);
+
+      this.sptDizzyHero.setAlpha(1)
+
+      await this.cameraZoomIn()
       await this.destroyQuestion()
     }
     if (this.imgHero!.x > 1400) {
@@ -845,22 +856,29 @@ export class Game extends Scene {
   async destroyQuestion() {
     this.bubbleDown([this.questionBubble]);
     await this.bubbleDown(this.optionButtons);
-    this.imgMaskHero?.destroy();
     this.questionBubble?.destroy();
     this.optionButtons.forEach((option) => option.destroy());
     this.optionButtons = [];
-    this.questionChoices.forEach(elementx => {
-      elementx.destroy()
-    });
-    this.questionChoices = [];
   }
 
   async heroMove() {
-    this.startHeroTimer(this.isHeroLastQuestionCorrect ? 2 : 4);
+    if (!this.isHeroLastQuestionCorrect) {
+      await this.timeDelay(3000);
+      this.isHeroLastQuestionCorrect = true
+      this.sptDizzyHero.setAlpha(0)
+    }
+    this.imgMaskHero?.destroy();
+    this.startHeroTimer(2);
   }
 
   async opponentMove() {
-    this.startOpponentTimer(this.isOpponentLastQuestionCorrect ? 4 : 6)
+    if (!this.isOpponentLastQuestionCorrect) {
+      await this.timeDelay(3000);
+      this.isOpponentLastQuestionCorrect = true
+      this.sptDizzyOpponent.setAlpha(0)
+    }
+    this.imgMaskOpponent?.destroy();
+    this.startOpponentTimer(4)
   }
 
   async heroAttack() {
@@ -879,16 +897,23 @@ export class Game extends Scene {
 
     let power = this.heroBasePower
 
-    if (this.currentQuestion.theme == this.theme) {
-      this.txtHero.setText("X2")
-      power += 250
-    } else {
-      power += 50
+    // Change Base accorig to the aura
+    power += 150
+
+    if (!this.isOpponentLastQuestionCorrect) {
+      power += 100
     }
 
-    if (this.questionHistoryHero.length == 3 && this.hasSameTheme(this.questionHistoryHero)) {
-      // power = 1450 - this.imgHero!.x
-      power += 450
+    if (this.questionHistoryHero.length == 5) {
+      if (this.isHeroFirstKO) {
+        // critical hit chance
+        power = 1250 - this.imgHero!.x
+        this.isHeroFirstKO = false
+      } else {
+        power = 1450 - this.imgHero!.x
+      }
+
+      // power += 450
       this.txtHero.setText("X5")
       this.questionHistoryHero = []
       await this.chainAttackAnimation(this.imgHero, this.questionHistoryImagesHero)
@@ -964,29 +989,32 @@ export class Game extends Scene {
 
   }
 
-  async opponentAttack(isX2) {
+  async opponentAttack() {
     if (this.heroTimer) {
       this.heroTimer.paused = true
     }
-    this.questionChoices.forEach(elementx => {
-      elementx.setAlpha(0.5)
-      elementx.getByName("image").removeInteractive()
-    });
     this.questionBubble?.setAlpha(0.5);
     this.optionButtons.forEach((option) => { option.setAlpha(0.5), option.getByName("image").removeInteractive() });
 
     let power = this.opponentBasePower
 
-    if (isX2) {
-      this.txtOpponent.setText("X2")
-      power += 250
-    } else {
-      power += 50
+    // Change Base accorig to the aura
+    power += 150
+
+    if (!this.isHeroLastQuestionCorrect) {
+      power += 100
     }
 
-    if (this.questionHistoryOpponent.length == 3 && this.hasSameTheme(this.questionHistoryOpponent)) {
-      // power = this.imgHero!.x + 550
-      power += 450
+    if (this.questionHistoryOpponent.length == 5) {
+      if (this.isOpponentFirstKO) {
+        // critical hit chance
+        power = this.imgHero!.x + 350
+        this.isOpponentFirstKO = false
+      } else {
+        power = this.imgHero!.x + 550
+      }
+
+      // power += 450
       this.txtOpponent.setText("X5")
       this.questionHistoryOpponent = []
       await this.chainAttackAnimation(this.imgOpponent, this.questionHistoryImagesOpponent)
@@ -1042,10 +1070,6 @@ export class Game extends Scene {
       this.heroTimer.paused = false
     }
     if (!this.isGameEnded) {
-      this.questionChoices.forEach(elementx => {
-        elementx.setAlpha(1)
-        elementx.getByName("image").setInteractive({ useHandCursor: true })
-      });
       this.questionBubble?.setAlpha(1);
       this.optionButtons.forEach((option) => { option.setAlpha(1), option.getByName("image").setInteractive({ useHandCursor: true }) });
     }
@@ -1067,57 +1091,7 @@ export class Game extends Scene {
         imgQuestionImage,
       ])
       .setScale(0);
-    await this.timeDelay(500);
     await this.bubbleUp([this.questionBubble], 0.7, 0.7);
-  }
-
-  cardsChoice() {
-    const randomItems = this.questions.map(category => category[Math.floor(Math.random() * category.length)]);
-    randomItems.forEach((element, i) => {
-      const imgCard = this.add
-        .image(0, 0, "imgCard")
-        .setDepth(100)
-        .setScale(1).setScrollFactor(0).setName("image");;
-      const imgQuestionImage = this.add
-        .image(0, 0, element.questionImg)
-        .setDepth(100)
-        .setScale(0.35).setScrollFactor(0);
-      const powerTxt = this.add
-        .text(70, -180, element.theme == this.theme ? "X2" : "", {
-          fontFamily: "Arial",
-          fontSize: "32px",
-          backgroundColor: "#a64245",
-          padding: { x: 10, y: 5 },
-        })
-      const questionContainer = this.add
-        .container(i * 340 + 200, 1450, [
-          imgCard,
-          imgQuestionImage,
-          powerTxt
-        ]).setScrollFactor(0);
-
-      imgCard.setInteractive({ useHandCursor: true });
-
-      imgCard.on("pointerover", () => {
-        questionContainer.setScale(1.1);
-      });
-
-      imgCard.on("pointerout", () => {
-        questionContainer.setScale(1);
-      });
-
-      imgCard.on("pointerdown", async () => {
-        this.questionChoices.forEach(elementx => {
-          elementx.destroy()
-        });
-        this.questionChoices = [];
-        this.currentQuestion = element;
-        console.log(this.currentQuestion)
-        await this.createQuestion();
-        this.createAnswerPanel();
-      });
-      this.questionChoices.push(questionContainer)
-    });
   }
 
   heroWins() {
@@ -1202,18 +1176,12 @@ export class Game extends Scene {
     });
     this.questionHistoryHero.forEach((element, i) => {
       const imgQuestionImage = this.add
-        .image(0, 0, element.questionImg)
-        .setDepth(100)
-        .setScale(0.1).setScrollFactor(0);
-      // const imgResult = this.add
-      //   .image(20, 30, "imgCorrect")
-      //   .setDepth(100)
-      //   .setScale(0.1).setScrollFactor(0);
+        .image(0, 0, "imgPower")
+        .setScale(0.25).setScrollFactor(0);
       const questionContainer = this.add
-        .container(i * 100 + 100, 1095, [
-          imgQuestionImage,
-          // imgResult
-        ])
+        .container((i * 58) + 85, 1090, [
+          imgQuestionImage
+        ]).setDepth(100)
       this.questionHistoryImagesHero.push(questionContainer)
     });
 
@@ -1225,18 +1193,12 @@ export class Game extends Scene {
     });
     this.questionHistoryOpponent.forEach((element, i) => {
       const imgQuestionImage = this.add
-        .image(0, 0, element.questionImg)
-        .setDepth(100)
-        .setScale(0.1).setScrollFactor(0);
-      // const imgResult = this.add
-      //   .image(20, 30, "imgCorrect")
-      //   .setDepth(100)
-      //   .setScale(0.1).setScrollFactor(0);
+        .image(0, 0, "imgPower")
+        .setScale(0.25).setScrollFactor(0);
       const questionContainer = this.add
-        .container(i * 100 + Number(this.game.config.width) - 300, 1095, [
-          imgQuestionImage,
-          // imgResult
-        ])
+        .container((i * 58) + Number(this.game.config.width) - 310, 1090, [
+          imgQuestionImage
+        ]).setDepth(100)
       this.questionHistoryImagesOpponent.push(questionContainer)
     });
 
@@ -1244,12 +1206,6 @@ export class Game extends Scene {
 
 
   // Util functions
-
-  hasSameTheme(arr) {
-    if (arr.length === 0) return false; // Handle empty array case
-    return arr.every(item => item.theme === arr[0].theme);
-  }
-
   getRandomItem(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
   }

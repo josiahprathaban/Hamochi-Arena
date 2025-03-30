@@ -1,0 +1,146 @@
+[
+  {
+    "id": 1,
+    "questionTxt": "",
+    "questionImg": "imgFruit1",
+    "options": ["Apple", "Strawberry", "Lemon", "Orange"],
+    "answer": "Strawberry",
+    "theme": "Fruits"
+  },
+  {
+    "id": 2,
+    "questionTxt": "",
+    "questionImg": "imgFruit2",
+    "options": ["Banana", "Apple", "Lemon", "Orange"],
+    "answer": "Lemon",
+    "theme": "Fruits"
+  },
+  {
+    "id": 3,
+    "questionTxt": "",
+    "questionImg": "imgFruit3",
+    "options": ["Apple", "Banana", "Strawberry", "Orange"],
+    "answer": "Apple",
+    "theme": "Fruits"
+  },
+  {
+    "id": 4,
+    "questionTxt": "",
+    "questionImg": "imgFruit4",
+    "options": ["Apple", "Banana", "Grapes", "Orange"],
+    "answer": "Grapes",
+    "theme": "Fruits"
+  },
+  {
+    "id": 5,
+    "questionTxt": "",
+    "questionImg": "imgFruit5",
+    "options": ["Strawberry", "Apple", "Grapes", "Banana"],
+    "answer": "Banana",
+    "theme": "Fruits"
+  },
+  {
+    "id": 6,
+    "questionTxt": "",
+    "questionImg": "imgAss1",
+    "options": ["Binding Tapes", "Books", "Scissors", "Foot Ruler"],
+    "answer": "Books",
+    "theme": "Stationery"
+  },
+  {
+    "id": 7,
+    "questionTxt": "",
+    "questionImg": "imgAss2",
+    "options": ["Binding Tapes", "Pens", "Scissors", "Foot Ruler"],
+    "answer": "Foot Ruler",
+    "theme": "Stationery"
+  },
+  {
+    "id": 8,
+    "questionTxt": "",
+    "questionImg": "imgAss3",
+    "options": ["Pens", "Books", "Scissors", "Foot Ruler"],
+    "answer": "Scissors",
+    "theme": "Stationery"
+  },
+  {
+    "id": 9,
+    "questionTxt": "",
+    "questionImg": "imgAss4",
+    "options": ["Binding Tapes", "Books", "Scissors", "Pens"],
+    "answer": "Binding Tapes",
+    "theme": "Stationery"
+  },
+  {
+    "id": 10,
+    "questionTxt": "",
+    "questionImg": "imgAss5",
+    "options": ["Binding Tapes", "Books", "Pens", "Foot Ruler"],
+    "answer": "Pens",
+    "theme": "Stationery"
+  },
+  {
+    "id": 11,
+    "questionTxt": "",
+    "questionImg": "imgAni1",
+    "options": ["Zeebra", "Lion", "Elephant", "Giraffe"],
+    "answer": "Zeebra",
+    "theme": "Animals"
+  },
+  {
+    "id": 12,
+    "questionTxt": "",
+    "questionImg": "imgAni2",
+    "options": ["Zeebra", "Lion", "Elephant", "Giraffe"],
+    "answer": "Lion",
+    "theme": "Animals"
+  },
+  {
+    "id": 13,
+    "questionTxt": "",
+    "questionImg": "imgAni3",
+    "options": ["Zeebra", "Lion", "Elephant", "Camel"],
+    "answer": "Camel",
+    "theme": "Animals"
+  },
+  {
+    "id": 13,
+    "questionTxt": "",
+    "questionImg": "imgAni3",
+    "options": ["Zeebra", "Lion", "Elephant", "Camel"],
+    "answer": "Camel",
+    "theme": "Animals"
+  },
+  {
+    "id": 14,
+    "questionTxt": "",
+    "questionImg": "imgAni4",
+    "options": ["Zeebra", "Lion", "Elephant", "Camel"],
+    "answer": "Elephant",
+    "theme": "Animals"
+  },
+  {
+    "id": 15,
+    "questionTxt": "",
+    "questionImg": "imgAni5",
+    "options": ["Hippopotamus", "Rhino", "Elephant", "Camel"],
+    "answer": "Rhino",
+    "theme": "Animals"
+  },
+  {
+    "id": 16,
+    "questionTxt": "",
+    "questionImg": "imgAni6",
+    "options": ["Hippopotamus", "Rhino", "Giraffe", "Camel"],
+    "answer": "Giraffe",
+    "theme": "Animals"
+  },
+  {
+    "id": 17,
+    "questionTxt": "",
+    "questionImg": "imgAni7",
+    "options": ["Hippopotamus", "Rhino", "Giraffe", "Camel"],
+    "answer": "Hippopotamus",
+    "theme": "Animals"
+  }
+]

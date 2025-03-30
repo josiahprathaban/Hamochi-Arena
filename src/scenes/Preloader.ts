@@ -33,6 +33,7 @@ export class Preloader extends Scene {
     this.load.image('imgFruits', 'fruits.png');
     this.load.image('imgStationery', 'stationery.png');
     this.load.image('imgAnimals', 'animals.png');
+    this.load.image('imgHamochi', 'Icon.png');
     this.load.image('background', 'bg.png');
     this.load.image('background2', 'bg2.png');
     this.load.image('imgHero', 'player-1.png');
@@ -60,6 +61,13 @@ export class Preloader extends Scene {
     this.load.image('imgTimer', 'timer.png');
     this.load.image('imgPower', 'power.png');
     this.load.image('imgIndicator', 'indi.png');
+
+
+    this.load.image('imgAuraStrength', 'aura-strength.png');
+    this.load.image('imgAuraSpeed', 'aura-speed.png');
+    this.load.image('imgAuraPower', 'aura-power.png');
+    this.load.image('imgAuraLuck', 'aura-luck.png');
+    this.load.image('imgAuraEndurance', 'aura-endurance.png');
 
     this.load.image('imgCorrect', 'correct.png');
     this.load.image('imgWrong', 'wrong.png');
@@ -89,6 +97,15 @@ export class Preloader extends Scene {
       {
         frameWidth: 300,
         frameHeight: 300,
+      }
+    );
+
+    this.load.spritesheet(
+      "sptDizzyAnim",
+      "dizzy.png",
+      {
+        frameWidth: 100,
+        frameHeight: 100,
       }
     );
 
