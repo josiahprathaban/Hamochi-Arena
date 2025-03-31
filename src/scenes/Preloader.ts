@@ -75,6 +75,8 @@ export class Preloader extends Scene {
     this.load.image('imgCardLuck', 'card-luck.png');
     this.load.image('imgCardEndurance', 'card-endurance.png');
 
+    this.load.image('imgCombo', 'combo.png');
+
     this.load.image('imgCorrect', 'correct.png');
     this.load.image('imgWrong', 'wrong.png');
 

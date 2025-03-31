@@ -53,8 +53,8 @@ export class Game extends Scene {
   displayImg: any;
   opponentBasePower: number = 0;
   heroBasePower: number = 0;
-  heroPowerTxt: GameObjects.Text;
-  opponentPowerTxt: GameObjects.Text;
+  heroComboTxt: GameObjects.Text;
+  opponentComboTxt: GameObjects.Text;
   difficulty: number = 0;
   imgHeroAura: GameObjects.Image;
   imgOpponentAura: GameObjects.Image;
@@ -65,6 +65,8 @@ export class Game extends Scene {
   auras: Array<any> = [];
   heroAura: String = ""
   opponentAura: String = ""
+  heroComboImg: GameObjects.Image;
+  opponentComboImg: GameObjects.Image;
 
   constructor() {
     super("Game");
@@ -345,10 +347,15 @@ export class Game extends Scene {
       0xffffff
     ).setScrollFactor(0)
 
-    this.heroPowerTxt = this.add
-      .text(60, 990, "", {
+    this.heroComboImg = this.add
+      .image(200, 960, "imgCombo")
+      .setOrigin(0.5, 0).setScrollFactor(1).setAlpha(0)
+
+    this.heroComboTxt = this.add
+      .text(115, 990, "", {
         fontFamily: "Arial",
         fontSize: "32px",
+        color: "#000"
       })
 
     for (let index = 0; index < 5; index++) {
@@ -367,10 +374,14 @@ export class Game extends Scene {
       0xffffff
     ).setScrollFactor(0)
 
-    this.opponentPowerTxt = this.add
-      .text(Number(this.game.config.width) - 60, 990, "", {
+    this.opponentComboImg = this.add
+      .image(Number(this.game.config.width) - 200, 960, "imgCombo")
+      .setOrigin(0.5, 0).setScrollFactor(1).setAlpha(0)
+    this.opponentComboTxt = this.add
+      .text(Number(this.game.config.width) - 115, 990, "", {
         fontFamily: "Arial",
         fontSize: "32px",
+        color: "#000"
       }).setOrigin(1, 0)
 
     for (let index = 0; index < 5; index++) {
@@ -499,10 +510,16 @@ export class Game extends Scene {
             if (Math.random() < Math.min(Number(bot_vocab_accuracy), 1)) {
 
               this.opponentBasePower += 50
-              if (this.opponentBasePower >= 100)
-                this.opponentPowerTxt.setText("COMBO x" + this.opponentBasePower / 50)
+              if (this.opponentBasePower >= 100) {
+                this.opponentComboTxt.setText("COMBO x" + this.opponentBasePower / 50)
+                this.opponentComboImg.setAlpha(1)
+              }
 
               this.questionHistoryOpponent.push(q)
+              // Power Aura
+              if (this.opponentAura == "Power" && this.questionHistoryOpponent.length < 5) {
+                this.questionHistoryOpponent.push(q)
+              }
               this.updateQuestionHistoryOpponent()
               this.isOpponentLastQuestionCorrect = true
 
@@ -510,7 +527,8 @@ export class Game extends Scene {
             } else {
 
               this.opponentBasePower = 0
-              this.opponentPowerTxt.setText("")
+              this.opponentComboTxt.setText("")
+              this.opponentComboImg.setAlpha(0)
 
               this.questionHistoryOpponent = []
               this.updateQuestionHistoryOpponent()
@@ -864,10 +882,16 @@ export class Game extends Scene {
     ) {
 
       this.heroBasePower += 50
-      if (this.heroBasePower >= 100)
-        this.heroPowerTxt.setText("COMBO x" + this.heroBasePower / 50)
+      if (this.heroBasePower >= 100) {
+        this.heroComboTxt.setText("COMBO x" + this.heroBasePower / 50)
+        this.heroComboImg.setAlpha(1)
+      }
 
       this.questionHistoryHero.push(this.currentQuestion)
+      // Power Aura
+      if (this.heroAura == "Power" && this.questionHistoryHero.length < 5) {
+        this.questionHistoryHero.push(this.currentQuestion)
+      }
       this.updateQuestionHistoryHero()
       this.isHeroLastQuestionCorrect = true
 
@@ -876,7 +900,8 @@ export class Game extends Scene {
     } else {
 
       this.heroBasePower = 0
-      this.heroPowerTxt.setText("")
+      this.heroComboTxt.setText("")
+      this.heroComboImg.setAlpha(0)
 
       this.questionHistoryHero = []
       this.updateQuestionHistoryHero()
@@ -917,7 +942,8 @@ export class Game extends Scene {
       this.sptDizzyHero.setAlpha(0)
     }
     this.imgMaskHero?.destroy();
-    this.startHeroTimer(2);
+    // Speed Aura
+    this.startHeroTimer(this.heroAura == "Speed" ? 2 : 2.6);
   }
 
   async opponentMove() {
@@ -927,7 +953,8 @@ export class Game extends Scene {
       this.sptDizzyOpponent.setAlpha(0)
     }
     this.imgMaskOpponent?.destroy();
-    this.startOpponentTimer(3)
+    // Speed Aura
+    this.startOpponentTimer(this.opponentAura == "Speed" ? 3 : 3.6)
   }
 
   async heroAttack() {
@@ -947,46 +974,77 @@ export class Game extends Scene {
     let power = this.heroBasePower
 
     // Change Base accorig to the aura
-    power += 150
 
-    if (!this.isOpponentLastQuestionCorrect) {
+    // Luck Aura
+    let luck = Math.random()
+    if (this.heroAura == "Luck" && luck < 0.5) {
+      power += 250
+      this.txtHero.setText("X2")
+      this.txtHero?.setAlpha(1)
+    } else if (luck < 0.1) {
+      power += 250
+      this.txtHero.setText("X2")
+      this.txtHero?.setAlpha(1)
+    } else {
       power += 100
     }
 
+    // Strength Aura
+    if (this.heroAura == "Strength")
+      power += 150
+
+    if (!this.isOpponentLastQuestionCorrect) {
+      power += 200
+    }
+
     if (this.questionHistoryHero.length == 5) {
+      // Ultimate Move
+
+      // KO
+      // if (this.isHeroFirstKO) {
+      //   // critical hit chance
+      //   power = 1250 - this.imgHero!.x
+      //   this.isHeroFirstKO = false
+      // } else {
+      //   power = 1450 - this.imgHero!.x
+      // }
+
+      power += 450
       if (this.isHeroFirstKO) {
         // critical hit chance
-        power = 1250 - this.imgHero!.x
+        power = Math.min(1250 - this.imgHero!.x, power)
         this.isHeroFirstKO = false
-      } else {
-        power = 1450 - this.imgHero!.x
       }
 
-      // power += 450
-      this.txtHero.setText("X5")
+      // this.txtHero.setText("WORD")
+
       this.questionHistoryHero = []
       await this.chainAttackAnimation(this.imgHero, this.questionHistoryImagesHero)
       this.sptEnergyHero?.setAlpha(1)
       await this.timeDelay(1000);
-    } else {
-      // Advantage of weekness
-      if (this.imgHero!.x < -250) {
-        power += 400
-      } else if (this.imgHero!.x < 0) {
-        power += 300
-      } else if (this.imgHero!.x < 200) {
-        power += 100
-      } else if (this.imgHero!.x < 350) {
-        power += 50
-      } else if (this.imgHero!.x < 450) {
-        //
-      } else {
-        //
-      }
     }
+    // else {
+    // Advantage of weekness
+    if (this.imgHero!.x < -250) {
+      power += 400
+    } else if (this.imgHero!.x < 0) {
+      power += 300
+    } else if (this.imgHero!.x < 200) {
+      power += 100
+    } else if (this.imgHero!.x < 350) {
+      power += 50
+    } else if (this.imgHero!.x < 450) {
+      //
+    } else {
+      //
+    }
+    // }
+
+    // Endurance Aura
+    if (this.opponentAura == "Endurance")
+      power -= 150
 
     power = Math.min(power, 1450 - this.imgHero!.x)
-    this.txtHero?.setAlpha(1)
     await this.cameraZoomIn()
     this.sptDustHero!.play("animDust");
     this.sptDustOpponent!.play("animDust2");
@@ -1053,47 +1111,76 @@ export class Game extends Scene {
     let power = this.opponentBasePower
 
     // Change Base accorig to the aura
-    power += 150
 
-    if (!this.isHeroLastQuestionCorrect) {
+    // Luck Aura
+    let luck = Math.random()
+    if (this.opponentAura == "Luck" && luck < 0.5) {
+      power += 250
+      this.txtOpponent.setText("X2")
+      this.txtOpponent?.setAlpha(1)
+    } else if (luck < 0.1) {
+      power += 250
+      this.txtOpponent.setText("X2")
+      this.txtOpponent?.setAlpha(1)
+    } else {
       power += 100
     }
 
+    // Strength Aura
+    if (this.opponentAura == "Strength")
+      power += 150
+
+    if (!this.isHeroLastQuestionCorrect) {
+      power += 200
+    }
+
     if (this.questionHistoryOpponent.length == 5) {
+      // Ultimate move
+
+      // KO
+      // if (this.isOpponentFirstKO) {
+      //   // critical hit chance
+      //   power = this.imgHero!.x + 350
+      //   this.isOpponentFirstKO = false
+      // } else {
+      //   power = this.imgHero!.x + 550
+      // }
+
+      power += 450
       if (this.isOpponentFirstKO) {
         // critical hit chance
-        power = this.imgHero!.x + 350
+        power = Math.min(this.imgHero!.x + 350, power)
         this.isOpponentFirstKO = false
-      } else {
-        power = this.imgHero!.x + 550
       }
 
-      // power += 450
-      this.txtOpponent.setText("X5")
+      // this.txtOpponent.setText("WORD")
       this.questionHistoryOpponent = []
       await this.chainAttackAnimation(this.imgOpponent, this.questionHistoryImagesOpponent)
       this.sptEnergyOpponent?.setAlpha(1)
       await this.timeDelay(1000);
     }
-    else {
-      // Advantage of weekness
-      if (this.imgHero!.x > 1150) {
-        power += 400
-      } else if (this.imgHero!.x > 900) {
-        power += 300
-      } else if (this.imgHero!.x > 700) {
-        power += 100
-      } else if (this.imgHero!.x > 550) {
-        power += 50
-      } else if (this.imgHero!.x > 450) {
-        //
-      } else {
-        //
-      }
+    // else {
+    // Advantage of weekness
+    if (this.imgHero!.x > 1150) {
+      power += 400
+    } else if (this.imgHero!.x > 900) {
+      power += 300
+    } else if (this.imgHero!.x > 700) {
+      power += 100
+    } else if (this.imgHero!.x > 550) {
+      power += 50
+    } else if (this.imgHero!.x > 450) {
+      //
+    } else {
+      //
     }
+    // }
+
+    // Endurance Aura
+    if (this.heroAura == "Endurance")
+      power -= 150
 
     power = Math.min(power, this.imgHero!.x + 550)
-    this.txtOpponent?.setAlpha(1)
     await this.cameraZoomIn()
     this.sptDustOpponent!.play("animDust");
     this.sptDustHero!.play("animDust2");
