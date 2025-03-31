@@ -69,6 +69,12 @@ export class Preloader extends Scene {
     this.load.image('imgAuraLuck', 'aura-luck.png');
     this.load.image('imgAuraEndurance', 'aura-endurance.png');
 
+    this.load.image('imgCardStrength', 'card-strength.png');
+    this.load.image('imgCardSpeed', 'card-speed.png');
+    this.load.image('imgCardPower', 'card-power.png');
+    this.load.image('imgCardLuck', 'card-luck.png');
+    this.load.image('imgCardEndurance', 'card-endurance.png');
+
     this.load.image('imgCorrect', 'correct.png');
     this.load.image('imgWrong', 'wrong.png');
 

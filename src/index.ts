@@ -4,6 +4,7 @@ import { Game as MainGameV0 } from './scenes/GameV0';
 import { Game as MainGameV1 } from './scenes/GameV1';
 import { Game as MainGameV2 } from './scenes/GameV2';
 import { Game as MainGameV3 } from './scenes/GameV3';
+import { GameEnd } from './scenes/GameEnd';
 import { AUTO, Game, Scale } from 'phaser';
 import { Preloader } from './scenes/Preloader';
 
@@ -47,6 +48,7 @@ const config: Phaser.Types.Core.GameConfig = {
     Boot,
     Preloader,
     GameTest,
+    GameEnd,
   ]
 };
 

@@ -19,7 +19,6 @@ export class Game extends Scene {
   questionBubble: GameObjects.Container | undefined;
   currentQuestion: any;
   playersTween: Phaser.Tweens.Tween | undefined;
-  player: String = "";
   enterBtn: GameObjects.Text;
   prompt: GameObjects.Text;
   isGameEnded: Boolean = false;
@@ -38,10 +37,10 @@ export class Game extends Scene {
   isHeroLastQuestionCorrect: Boolean = true
   isOpponentLastQuestionCorrect: Boolean = true
   questionHistoryHero: Array<any> = []
-  questionHistoryImagesHero: Array<GameObjects.Container> = [];
+  questionHistoryImagesHero: Array<GameObjects.Image> = [];
   txtHero: GameObjects.Text;
   questionHistoryOpponent: Array<any> = []
-  questionHistoryImagesOpponent: Array<GameObjects.Container> = [];
+  questionHistoryImagesOpponent: Array<GameObjects.Image> = [];
   txtOpponent: GameObjects.Text;
   ring: GameObjects.Image;
   themeTxtGrp: Array<any>;
@@ -63,6 +62,9 @@ export class Game extends Scene {
   isHeroFirstKO: Boolean = true
   sptDizzyHero: GameObjects.Sprite;
   sptDizzyOpponent: GameObjects.Sprite;
+  auras: Array<any> = [];
+  heroAura: String = ""
+  opponentAura: String = ""
 
   constructor() {
     super("Game");
@@ -115,11 +117,11 @@ export class Game extends Scene {
       .rectangle(
         Number(this.game.config.width) / 2,
         1070,
-        Number(this.game.config.width),
+        2600,
         220,
         0xdb4b31
       )
-      .setScrollFactor(0);
+      .setScrollFactor(1);
 
     this.imgHero = this.add
       .image(200, 720, "imgHero")
@@ -127,12 +129,7 @@ export class Game extends Scene {
       .setScale(1.5)
       .setFlipX(true)
       .setAlpha(0);
-    this.imgHeroAura = this.add
-      .image(200, 720, "imgAuraStrength")
-      .setDepth(99)
-      .setScale(1.5)
-      .setFlipX(true)
-      .setAlpha(0);
+
     this.sptDustHero = this.add
       .sprite(0, 0, "sptDust")
       .setOrigin(0)
@@ -170,8 +167,9 @@ export class Game extends Scene {
       .setScale(1.5)
       .setAlpha(0);
 
+    this.opponentAura = this.getRandomItem(["Strength", "Luck", 'Speed', "Power", "Endurance"])
     this.imgOpponentAura = this.add
-      .image(Number(this.game.config.width) - 200, 720, "imgAuraLuck")
+      .image(Number(this.game.config.width) - 200, 720, "imgAura" + this.opponentAura)
       .setDepth(98)
       .setScale(1.5)
       .setAlpha(0);
@@ -233,31 +231,86 @@ export class Game extends Scene {
 
     this.updateTheme()
 
-    this.add
-      .rectangle(
-        Number(this.game.config.width) / 2,
-        -500,
-        2600,
-        1000,
-        0xf9dcb0
-      )
+    this.cameras.main.setZoom(0.5);
+    this.cameras.main.y = -610;
+    this.cameras.main.height += 500
 
-    this.gameCamera = this.cameras.add(0, 500, Number(this.game.config.width), 0);
-    this.gameCamera.setBounds(-760, 0, 2600, Number(this.game.config.height) / 2)
-    this.gameCamera.setZoom(0.5)
+    this.auras.push(
+      this.add
+        .text(Number(this.game.config.width) / 2, 1550, "Select Your Aura", {
+          fontFamily: "Arial",
+          fontSize: "120px",
+          color: "#a64245",
+          fontStyle: "bold"
+        })
+        .setOrigin(0.5)
+        .setScrollFactor(0))
+
+    this.auras.push(this.add.image(-110, 2200, "imgCardEndurance")
+      .setDepth(98)
+      .setScale(3).setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        this.selectAura("Endurance");
+      }))
+
+    this.auras.push(this.add.image(540, 2200, "imgCardLuck")
+      .setDepth(98)
+      .setScale(3).setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        this.selectAura("Luck");
+      }))
+
+    this.auras.push(this.add.image(1190, 2200, "imgCardPower")
+      .setDepth(98)
+      .setScale(3).setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        this.selectAura("Power");
+      }))
+
+    this.auras.push(this.add.image(220, 3000, "imgCardSpeed")
+      .setDepth(98)
+      .setScale(3).setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        this.selectAura("Speed");
+      }))
+
+    this.auras.push(this.add.image(870, 3000, "imgCardStrength")
+      .setDepth(98)
+      .setScale(3).setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        this.selectAura("Strength");
+      }))
+  }
+
+  selectAura(text) {
+    this.auras.forEach(element => {
+      element.destroy()
+    });
+    this.auras = []
+    this.heroAura = text
+    this.imgHeroAura = this.add
+      .image(200, 720, "imgAura" + this.heroAura)
+      .setDepth(99)
+      .setScale(1.5)
+      .setFlipX(true)
+      .setAlpha(0);
+
+
     this.tweens.add({
-      targets: this.gameCamera,
+      targets: this.cameras.main,
       zoom: 1,
       y: 0,
-      delay: 1500,
       duration: 1000,
       ease: "Power2",
       onComplete: () => {
-        this.gameCamera!.setSize(Number(this.game.config.width), Number(this.game.config.height) / 2)
-      },
+        this.startGame()
+      }
     });
+  }
+  async startGame() {
+    this.gameCamera = this.cameras.add(0, 0, Number(this.game.config.width), Number(this.game.config.height) / 2);
+    this.gameCamera.setBounds(-760, 0, 2600, Number(this.game.config.height) / 2)
 
-    await this.timeDelay(3000);
     this.heroAppears();
     await this.timeDelay(1000);
     this.opponentAppears();
@@ -287,7 +340,7 @@ export class Game extends Scene {
     this.heroProgressBar = this.add.graphics().setDepth(999).setScrollFactor(0);
 
     this.heroProgressBarBg = this.add.rectangle(
-      200, 1160,
+      200, 1150,
       this.barWidth + 4, this.barHeight + 4,
       0xffffff
     ).setScrollFactor(0)
@@ -309,7 +362,7 @@ export class Game extends Scene {
     this.opponentProgressBar = this.add.graphics().setDepth(999).setScrollFactor(0);
 
     this.opponentProgressBarBg = this.add.rectangle(
-      Number(this.game.config.width) - 200, 1160,
+      Number(this.game.config.width) - 200, 1150,
       this.barWidth + 4, this.barHeight + 4,
       0xffffff
     ).setScrollFactor(0)
@@ -327,10 +380,8 @@ export class Game extends Scene {
         .setDepth(99)
         .setScale(0.25).setTint(0x000000)
     }
-
-
-
   }
+
 
   updateTheme() {
     this.sponsor = "Hamochi";
@@ -348,8 +399,6 @@ export class Game extends Scene {
         fontSize: "36px",
         fontStyle: 'bold'
       }).setOrigin(0.5)
-
-
   }
 
   animateScrollingText(startX, startY) {
@@ -404,8 +453,8 @@ export class Game extends Scene {
       callback: async () => {
         this.heroProgress += 1 / (duration * 50);
         this.heroProgressBar.clear();
-        this.heroProgressBar.fillStyle(0x00ff00, 1);
-        this.heroProgressBar.fillRect(200 - this.barWidth / 2, 1158, this.barWidth * this.heroProgress, this.barHeight);
+        this.heroProgressBar.fillStyle(0x00A730, 1);
+        this.heroProgressBar.fillRect(200 - this.barWidth / 2, 1148, this.barWidth * this.heroProgress, this.barHeight);
 
         if (this.heroProgress >= 1) {
           // this.heroProgressBar.clear()
@@ -423,18 +472,18 @@ export class Game extends Scene {
 
   startOpponentTimer(duration: number) {
     // this.opponentProgressBarBg.visible = true
-    this.imgOpponentThinking!.setAlpha(1);
     this.opponentTimer = this.time.addEvent({
       delay: 20,
       repeat: duration * 50,
       callback: async () => {
         this.opponentProgress += 1 / (duration * 50);
 
-        if (this.opponentProgress <= 0.5) {
+        if (this.opponentProgress <= 0.67) {
           this.opponentProgressBar.clear();
           this.opponentProgressBar.fillStyle(0xff0000, 1);
-          this.opponentProgressBar.fillRect(Number(this.game.config.width) - 200 - this.barWidth / 2, 1158, this.barWidth * this.opponentProgress * 2, this.barHeight);
-
+          this.opponentProgressBar.fillRect(Number(this.game.config.width) - 200 - this.barWidth / 2, 1148, this.barWidth * this.opponentProgress * 1.5, this.barHeight);
+        } else {
+          this.imgOpponentThinking!.setAlpha(1);
         }
 
         if (this.opponentProgress >= 1) {
@@ -476,7 +525,7 @@ export class Game extends Scene {
                 .setFlipX(true);
               this.sptDizzyOpponent.setAlpha(1)
 
-              await this.cameraZoomIn()
+              // await this.cameraZoomIn()
             }
             if (this.imgHero!.x < -500) {
               this.opponentWins();
@@ -878,7 +927,7 @@ export class Game extends Scene {
       this.sptDizzyOpponent.setAlpha(0)
     }
     this.imgMaskOpponent?.destroy();
-    this.startOpponentTimer(4)
+    this.startOpponentTimer(3)
   }
 
   async heroAttack() {
@@ -965,23 +1014,28 @@ export class Game extends Scene {
     this.imgOpponent!.x = this.imgHero!.x + 180
     this.imgMaskHero.destroy();
     this.imgMaskOpponent.destroy();
+
+    this.cameraZoomOut()
     if (this.opponentTimer && !this.isGameEnded) {
       this.opponentTimer.paused = false
     }
-    this.cameraZoomOut()
   }
 
   async chainAttackAnimation(player, historyImages): Promise<void> {
     return new Promise((resolve) => {
       this.tweens.add({
         targets: historyImages,
-        scaleX: 0,
+        scaleX: 0 + scrollX,
         scaleY: 0,
         y: player!.y - 5,
-        x: player!.x - 5,
+        x: player!.x,
         duration: 300,
         ease: "Linear",
         onComplete: () => {
+          historyImages.forEach(element => {
+            element.destroy()
+          });
+          historyImages = []
           resolve();
         },
       });
@@ -1066,6 +1120,8 @@ export class Game extends Scene {
     this.imgOpponent!.x = this.imgHero!.x + 180
     this.imgMaskHero.destroy();
     this.imgMaskOpponent.destroy();
+
+    this.cameraZoomOut()
     if (this.heroTimer && !this.isGameEnded) {
       this.heroTimer.paused = false
     }
@@ -1073,7 +1129,6 @@ export class Game extends Scene {
       this.questionBubble?.setAlpha(1);
       this.optionButtons.forEach((option) => { option.setAlpha(1), option.getByName("image").setInteractive({ useHandCursor: true }) });
     }
-    this.cameraZoomOut()
   }
 
   async createQuestion() {
@@ -1094,13 +1149,10 @@ export class Game extends Scene {
     await this.bubbleUp([this.questionBubble], 0.7, 0.7);
   }
 
-  heroWins() {
-    this.timeEventX.remove()
-    this.imgOpponentThinking!.setAlpha(0);
-    this.isGameEnded = true;
-    this.destroyQuestion()
-    this.heroTimer?.destroy()
-    this.opponentTimer?.destroy()
+  async heroWins() {
+    this.isGameEnded = true
+    this.questionBubble?.destroy();
+    this.optionButtons.forEach((option) => option.destroy());
     if (this.imgMaskHero) {
       this.imgMaskHero.destroy();
     }
@@ -1116,29 +1168,15 @@ export class Game extends Scene {
       .setDepth(100)
       .setScale(0.4)
       .setFlipX(true);
-    this.prompt.setText("You Win!");
-    this.add
-      .text(Number(this.game.config.width) / 2, 1680, "Restart", {
-        fontFamily: "Arial",
-        fontSize: "64px",
-        backgroundColor: "#a64245",
-        padding: { x: 20, y: 10 },
-      })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setInteractive({ useHandCursor: true })
-      .on("pointerdown", async () => {
-        location.reload();
-      });
+    await this.timeDelay(100);
+    this.scene.pause()
+    this.scene.launch('GameEnd', { isWon: true });
   }
 
-  opponentWins() {
-    this.timeEventX.remove()
-    this.imgOpponentThinking!.setAlpha(0);
-    this.isGameEnded = true;
-    this.destroyQuestion()
-    this.heroTimer?.destroy()
-    this.opponentTimer?.destroy()
+  async opponentWins() {
+    this.isGameEnded = true
+    this.questionBubble?.destroy();
+    this.optionButtons.forEach((option) => option.destroy());
     if (this.imgMaskHero) {
       this.imgMaskHero.destroy();
     }
@@ -1154,35 +1192,22 @@ export class Game extends Scene {
       .setDepth(100)
       .setScale(0.4)
       .setFlipX(true);
-    this.prompt.setText("You Lost!");
-    this.add
-      .text(Number(this.game.config.width) / 2, 1680, "Restart", {
-        fontFamily: "Arial",
-        fontSize: "64px",
-        backgroundColor: "#a64245",
-        padding: { x: 20, y: 10 },
-      })
-      .setOrigin(0.5)
-      .setScrollFactor(0)
-      .setInteractive({ useHandCursor: true })
-      .on("pointerdown", async () => {
-        location.reload();
-      });
+    await this.timeDelay(100);
+    this.scene.pause()
+    this.scene.launch('GameEnd', { isWon: false });
   }
 
   updateQuestionHistoryHero() {
     this.questionHistoryImagesHero.forEach(element => {
       element.destroy()
     });
+    this.questionHistoryImagesHero = []
     this.questionHistoryHero.forEach((element, i) => {
       const imgQuestionImage = this.add
-        .image(0, 0, "imgPower")
-        .setScale(0.25).setScrollFactor(0);
-      const questionContainer = this.add
-        .container((i * 58) + 85, 1090, [
-          imgQuestionImage
-        ]).setDepth(100)
-      this.questionHistoryImagesHero.push(questionContainer)
+        .image((i * 58) + 85, 1090, "imgPower")
+        .setScale(0.25).setOrigin(0.5).setDepth(100).setScrollFactor(0)
+
+      this.questionHistoryImagesHero.push(imgQuestionImage)
     });
 
   }
@@ -1191,15 +1216,12 @@ export class Game extends Scene {
     this.questionHistoryImagesOpponent.forEach(element => {
       element.destroy()
     });
+    this.questionHistoryImagesOpponent = []
     this.questionHistoryOpponent.forEach((element, i) => {
       const imgQuestionImage = this.add
-        .image(0, 0, "imgPower")
-        .setScale(0.25).setScrollFactor(0);
-      const questionContainer = this.add
-        .container((i * 58) + Number(this.game.config.width) - 310, 1090, [
-          imgQuestionImage
-        ]).setDepth(100)
-      this.questionHistoryImagesOpponent.push(questionContainer)
+        .image((i * 58) + Number(this.game.config.width) - 310, 1090, "imgPower")
+        .setScale(0.25).setOrigin(0.5).setDepth(100).setScrollFactor(0)
+      this.questionHistoryImagesOpponent.push(imgQuestionImage)
     });
 
   }
