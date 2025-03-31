@@ -1012,7 +1012,8 @@ export class Game extends Scene {
       power += 450
       if (this.isHeroFirstKO) {
         // critical hit chance
-        power = Math.min(1250 - this.imgHero!.x, power)
+        if ((this.heroAura == "Luck" && luck < 0.5) || luck < 0.1)
+          power = Math.min(1250 - this.imgHero!.x, power)
         this.isHeroFirstKO = false
       }
 
@@ -1149,7 +1150,8 @@ export class Game extends Scene {
       power += 450
       if (this.isOpponentFirstKO) {
         // critical hit chance
-        power = Math.min(this.imgHero!.x + 350, power)
+        if ((this.opponentAura == "Luck" && luck < 0.5) || luck < 0.1)
+          power = Math.min(this.imgHero!.x + 350, power)
         this.isOpponentFirstKO = false
       }
 
