@@ -67,6 +67,8 @@ export class Game extends Scene {
   opponentAura: String = ""
   heroComboImg: GameObjects.Image;
   opponentComboImg: GameObjects.Image;
+  opponentPowerBars: number = 0
+  heroPowerBars: number = 0
 
   constructor() {
     super("Game");
@@ -170,6 +172,8 @@ export class Game extends Scene {
       .setAlpha(0);
 
     this.opponentAura = this.getRandomItem(["Strength", "Luck", 'Speed', "Power", "Endurance"])
+    this.opponentAura = "Power"
+    this.opponentPowerBars = this.opponentAura == "Power" ? 3 : 5
     this.imgOpponentAura = this.add
       .image(Number(this.game.config.width) - 200, 720, "imgAura" + this.opponentAura)
       .setDepth(98)
@@ -248,39 +252,39 @@ export class Game extends Scene {
         .setOrigin(0.5)
         .setScrollFactor(0))
 
-    this.auras.push(this.add.image(-110, 2200, "imgCardEndurance")
+    this.auras.push(this.add.image(-110, 2200, "imgCardStrength")
+      .setDepth(98)
+      .setScale(3).setInteractive({ useHandCursor: true })
+      .on("pointerdown", () => {
+        this.selectAura("Strength");
+      }))
+
+    this.auras.push(this.add.image(540, 2200, "imgCardEndurance")
       .setDepth(98)
       .setScale(3).setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
         this.selectAura("Endurance");
       }))
 
-    this.auras.push(this.add.image(540, 2200, "imgCardLuck")
+    this.auras.push(this.add.image(1190, 2200, "imgCardLuck")
       .setDepth(98)
       .setScale(3).setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
         this.selectAura("Luck");
       }))
 
-    this.auras.push(this.add.image(1190, 2200, "imgCardPower")
+    this.auras.push(this.add.image(220, 3000, "imgCardPower")
       .setDepth(98)
       .setScale(3).setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
         this.selectAura("Power");
       }))
 
-    this.auras.push(this.add.image(220, 3000, "imgCardSpeed")
+    this.auras.push(this.add.image(870, 3000, "imgCardSpeed")
       .setDepth(98)
       .setScale(3).setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
         this.selectAura("Speed");
-      }))
-
-    this.auras.push(this.add.image(870, 3000, "imgCardStrength")
-      .setDepth(98)
-      .setScale(3).setInteractive({ useHandCursor: true })
-      .on("pointerdown", () => {
-        this.selectAura("Strength");
       }))
   }
 
@@ -290,6 +294,7 @@ export class Game extends Scene {
     });
     this.auras = []
     this.heroAura = text
+    this.heroPowerBars = this.heroAura == "Power" ? 3 : 5
     this.imgHeroAura = this.add
       .image(200, 720, "imgAura" + this.heroAura)
       .setDepth(99)
@@ -358,7 +363,7 @@ export class Game extends Scene {
         color: "#000"
       })
 
-    for (let index = 0; index < 5; index++) {
+    for (let index = 0; index < this.heroPowerBars; index++) {
       this.add
         .sprite(50 + (58 * index), 1060, "imgPower").setAlpha(0.5)
         .setOrigin(0)
@@ -384,7 +389,7 @@ export class Game extends Scene {
         color: "#000"
       }).setOrigin(1, 0)
 
-    for (let index = 0; index < 5; index++) {
+    for (let index = 0; index < this.opponentPowerBars; index++) {
       this.add
         .sprite(Number(this.game.config.width) - 50 - (58 * index), 1060, "imgPower").setAlpha(0.5)
         .setOrigin(1, 0)
@@ -516,10 +521,6 @@ export class Game extends Scene {
               }
 
               this.questionHistoryOpponent.push(q)
-              // Power Aura
-              if (this.opponentAura == "Power" && this.questionHistoryOpponent.length < 5) {
-                this.questionHistoryOpponent.push(q)
-              }
               this.updateQuestionHistoryOpponent()
               this.isOpponentLastQuestionCorrect = true
 
@@ -888,10 +889,7 @@ export class Game extends Scene {
       }
 
       this.questionHistoryHero.push(this.currentQuestion)
-      // Power Aura
-      if (this.heroAura == "Power" && this.questionHistoryHero.length < 5) {
-        this.questionHistoryHero.push(this.currentQuestion)
-      }
+
       this.updateQuestionHistoryHero()
       this.isHeroLastQuestionCorrect = true
 
@@ -997,7 +995,7 @@ export class Game extends Scene {
       power += 200
     }
 
-    if (this.questionHistoryHero.length == 5) {
+    if (this.questionHistoryHero.length == this.heroPowerBars) {
       // Ultimate Move
 
       // KO
@@ -1135,7 +1133,7 @@ export class Game extends Scene {
       power += 200
     }
 
-    if (this.questionHistoryOpponent.length == 5) {
+    if (this.questionHistoryOpponent.length == this.opponentPowerBars) {
       // Ultimate move
 
       // KO
@@ -1308,7 +1306,7 @@ export class Game extends Scene {
     this.questionHistoryImagesOpponent = []
     this.questionHistoryOpponent.forEach((element, i) => {
       const imgQuestionImage = this.add
-        .image((i * 58) + Number(this.game.config.width) - 310, 1090, "imgPower")
+        .image((i * 58) + Number(this.game.config.width) - 10 - this.opponentPowerBars * 60, 1090, "imgPower")
         .setScale(0.25).setOrigin(0.5).setDepth(100).setScrollFactor(0)
       this.questionHistoryImagesOpponent.push(imgQuestionImage)
     });
