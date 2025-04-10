@@ -172,7 +172,7 @@ export class Game extends Scene {
       .setAlpha(0);
 
     this.opponentAura = this.getRandomItem(["Strength", "Luck", 'Speed', "Power", "Endurance"])
-    this.opponentAura = "Power"
+    // this.opponentAura = "Power"
     this.opponentPowerBars = this.opponentAura == "Power" ? 3 : 5
     this.imgOpponentAura = this.add
       .image(Number(this.game.config.width) - 200, 720, "imgAura" + this.opponentAura)
