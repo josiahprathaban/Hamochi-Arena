@@ -45,7 +45,7 @@ export class Game extends Scene {
   ring: GameObjects.Image;
   themeTxtGrp: Array<any>;
   timerX: number = 99;
-  txtTimer: GameObjects.Text;
+  txtTimer: any;
   timeEventX: Phaser.Time.TimerEvent;
   themes: any;
   texts: Array<any> = [];
@@ -603,6 +603,28 @@ export class Game extends Scene {
       callback: () => {
         this.timerX--;
         this.txtTimer.setText(this.timerX.toString().padStart(2, '0'))
+
+        // Heartbeat & yellow color when < 10 seconds
+        if (this.timerX < 10) {
+          this.txtTimer.setColor('#FFD700'); // yellow
+
+          // Heartbeat tween
+          if (!this.txtTimer.heartbeatTween || !this.txtTimer.heartbeatTween.isPlaying()) {
+            this.txtTimer.heartbeatTween = this.tweens.add({
+              targets: this.txtTimer,
+              scale: 1.3,
+              yoyo: true,
+              duration: 150,
+              repeat: 1,
+              ease: 'Quad.easeInOut',
+            });
+          }
+        } else {
+          // Reset scale and color if goes back above 10 (just in case)
+          this.txtTimer.setColor('#FFFFFF');
+          this.txtTimer.setScale(1);
+        }
+
         if (this.timerX <= 0) {
           if (this.imgHero!.x > 450) {
             this.heroWins();
