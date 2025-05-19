@@ -117,6 +117,15 @@ export class Preloader extends Scene {
       }
     );
 
+    this.load.spritesheet(
+      "sptIdea",
+      "idea.png",
+      {
+        frameWidth: 120,
+        frameHeight: 120,
+      }
+    );
+
   }
 
   create() {

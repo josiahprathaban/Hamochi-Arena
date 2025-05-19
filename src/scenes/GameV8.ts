@@ -1,4 +1,4 @@
-// V8
+// V4 Choice of attack
 
 import { GameObjects, Scene } from "phaser";
 import questions from "../questionsX.json";
@@ -69,14 +69,6 @@ export class Game extends Scene {
   opponentComboImg: GameObjects.Image;
   opponentPowerBars: number = 0
   heroPowerBars: number = 0
-  correctWord: any;
-  blankTextObjects: any[];
-  selectedLetters: any[];
-  sptIdeaHero: GameObjects.Sprite;
-  keyboardContainer: any[];
-  blankContainer: any[];
-  isUltimateMove: Boolean = false
-  ultimateRsult: GameObjects.Image;
 
   constructor() {
     super("Game");
@@ -115,14 +107,6 @@ export class Game extends Scene {
     this.anims.create({
       key: "animDizzy",
       frames: this.anims.generateFrameNumbers("sptDizzyAnim", {
-        frames: [0, 1, 0, 1],
-      }),
-      frameRate: 4,
-      repeat: -1,
-    });
-    this.anims.create({
-      key: "animIdea",
-      frames: this.anims.generateFrameNumbers("sptIdea", {
         frames: [0, 1, 0, 1],
       }),
       frameRate: 4,
@@ -171,13 +155,6 @@ export class Game extends Scene {
       .setDepth(101)
       .setAlpha(0);
     this.sptDizzyHero.play("animDizzy");
-
-    this.sptIdeaHero = this.add
-      .sprite(0, 0, "sptIdea")
-      .setScale(1.2)
-      .setDepth(101)
-      .setAlpha(0);
-    this.sptIdeaHero.play("animIdea");
 
     this.txtHero = this.add
       .text(0, 0, "", {
@@ -309,9 +286,6 @@ export class Game extends Scene {
       .on("pointerdown", () => {
         this.selectAura("Speed");
       }))
-
-    // this.createBlanks('Foot Ruler', 1300);
-    // this.createVirtualKeyboard('Foot Ruler', 20, 1500);
   }
 
   selectAura(text) {
@@ -630,10 +604,6 @@ export class Game extends Scene {
       this.sptDizzyHero!.y = this.imgHero!.y - 70;
       this.sptDizzyHero!.x = this.imgHero!.x;
     }
-    if (this.sptIdeaHero && this.imgHero) {
-      this.sptIdeaHero!.y = this.imgHero!.y - 100;
-      this.sptIdeaHero!.x = this.imgHero!.x;
-    }
     if (this.txtHero && this.imgHero) {
       this.txtHero!.y = this.imgHero!.y - 100;
       this.txtHero!.x = this.imgHero!.x - 30;
@@ -922,23 +892,9 @@ export class Game extends Scene {
 
       this.updateQuestionHistoryHero()
       this.isHeroLastQuestionCorrect = true
+
       await this.heroAttack();
 
-      if (this.questionHistoryHero.length == this.heroPowerBars) {
-        await this.destroyQuestion()
-        this.sptIdeaHero.setAlpha(1)
-        this.sptIdeaHero.setInteractive({ useHandCursor: true });
-        this.sptIdeaHero.on("pointerdown", () => {
-          this.sptIdeaHero.setAlpha(0)
-          this.ultimateMoveHero()
-        });
-      } else {
-        if (this.imgHero!.x > 1400) {
-          this.heroWins();
-        } else if (!this.isGameEnded) {
-          this.heroMove();
-        }
-      }
     } else {
 
       this.heroBasePower = 0
@@ -961,14 +917,12 @@ export class Game extends Scene {
 
       await this.cameraZoomIn()
       await this.destroyQuestion()
-
-      if (this.imgHero!.x > 1400) {
-        this.heroWins();
-      } else if (!this.isGameEnded) {
-        this.heroMove();
-      }
     }
-
+    if (this.imgHero!.x > 1400) {
+      this.heroWins();
+    } else if (!this.isGameEnded) {
+      this.heroMove();
+    }
   }
 
   async destroyQuestion() {
@@ -1014,7 +968,6 @@ export class Game extends Scene {
       .setScale(0.4);
     await this.timeDelay(500);
     await this.destroyQuestion()
-    this.removeBlanksAndKeyboard()
 
     let power = this.heroBasePower
 
@@ -1042,8 +995,9 @@ export class Game extends Scene {
       power += 200
     }
 
-    if (this.isUltimateMove) {
+    if (this.questionHistoryHero.length == this.heroPowerBars) {
       // Ultimate Move
+
       // KO
       // if (this.isHeroFirstKO) {
       //   // critical hit chance
@@ -1152,7 +1106,7 @@ export class Game extends Scene {
     }
     this.questionBubble?.setAlpha(0.5);
     this.optionButtons.forEach((option) => { option.setAlpha(0.5), option.getByName("image").removeInteractive() });
-    // this.deactivateKeyboardAndBlanks()
+
     let power = this.opponentBasePower
 
     // Change Base accorig to the aura
@@ -1259,7 +1213,6 @@ export class Game extends Scene {
       this.heroTimer.paused = false
     }
     if (!this.isGameEnded) {
-      // this.activateKeyboardAndBlanks()
       this.questionBubble?.setAlpha(1);
       this.optionButtons.forEach((option) => { option.setAlpha(1), option.getByName("image").setInteractive({ useHandCursor: true }) });
     }
@@ -1286,7 +1239,6 @@ export class Game extends Scene {
   async heroWins() {
     this.isGameEnded = true
     this.questionBubble?.destroy();
-    this.removeBlanksAndKeyboard()
     this.optionButtons.forEach((option) => option.destroy());
     if (this.imgMaskHero) {
       this.imgMaskHero.destroy();
@@ -1311,7 +1263,6 @@ export class Game extends Scene {
   async opponentWins() {
     this.isGameEnded = true
     this.questionBubble?.destroy();
-    this.removeBlanksAndKeyboard()
     this.optionButtons.forEach((option) => option.destroy());
     if (this.imgMaskHero) {
       this.imgMaskHero.destroy();
@@ -1361,264 +1312,6 @@ export class Game extends Scene {
     });
 
   }
-
-  async ultimateMoveHero() {
-    this.currentQuestion = this.getRandomItem(this.questions)
-    await this.createQuestion();
-    const word = this.currentQuestion.answer;
-    this.createBlanks(word, 1300);
-    this.createVirtualKeyboard(word, 20, 1550);
-  }
-
-  createVirtualKeyboard(actualWord, xStart = 100, yStart = 100) {
-    const keySize = 95;
-    const totalKeys = 20;
-    const cols = 10;
-
-    const lettersInWord = Array.from(new Set(actualWord.toUpperCase().replace(/\s/g, '')));
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
-    const availableLetters = alphabet.filter(l => !lettersInWord.includes(l));
-
-    while (lettersInWord.length < totalKeys) {
-      const randomIndex = Math.floor(Math.random() * availableLetters.length);
-      const letter = availableLetters.splice(randomIndex, 1)[0];
-      lettersInWord.push(letter);
-    }
-
-    Phaser.Utils.Array.Shuffle(lettersInWord);
-
-    this.keyboardContainer = [];
-
-    for (let i = 0; i < totalKeys; i++) {
-      const row = Math.floor(i / cols);
-      const col = i % cols;
-      const letter: any = lettersInWord[i];
-
-      const x = xStart + col * keySize + col * 10;
-      const y = yStart + row * keySize + row * 10;
-
-      const keyBg = this.add.rectangle(x, y, keySize, keySize, 0xcccccc)
-        .setStrokeStyle(2, 0x000000)
-        .setOrigin(0);
-
-      const keyText = this.add.text(x + keySize / 2, y + keySize / 2, letter, {
-        fontFamily: "Arial",
-        fontSize: "44px",
-        color: '#000',
-      }).setOrigin(0.5);
-
-      this.keyboardContainer.push(keyBg, keyText);
-
-      keyBg.setInteractive({ useHandCursor: true });
-      keyBg.on('pointerdown', async () => {
-        if (this.selectedLetters.length < this.blankTextObjects.length) {
-          this.selectedLetters.push(letter);
-
-          const index = this.selectedLetters.length - 1;
-          this.blankTextObjects[index].setText(letter);
-
-          if (this.selectedLetters.length === this.blankTextObjects.length) {
-            const typedWord = this.selectedLetters.join('');
-            const targetWord = this.correctWord.replace(/\s/g, '');
-            this.ultimateRsult = this.add
-              .image(
-                1000,
-                1440,
-                typedWord === targetWord
-                  ? "imgCorrect"
-                  : "imgWrong"
-              ).setScale(0.3)
-            if (typedWord === targetWord) {
-              this.isUltimateMove = true
-              await this.heroAttack();
-              this.isUltimateMove = false
-            } else {
-              this.heroBasePower = 0
-              this.heroComboTxt.setText("")
-              this.heroComboImg.setAlpha(0)
-
-              this.questionHistoryHero = []
-              this.updateQuestionHistoryHero()
-              this.isHeroLastQuestionCorrect = false
-
-              if (this.imgMaskHero) {
-                this.imgMaskHero.destroy();
-              }
-              this.imgMaskHero = this.add
-                .image(0, 0, "imgMask6")
-                .setDepth(100)
-                .setScale(0.4);
-
-              this.sptDizzyHero.setAlpha(1)
-
-              await this.cameraZoomIn()
-              await this.destroyQuestion()
-            }
-            this.removeBlanksAndKeyboard()
-            if (this.imgHero!.x > 1400) {
-              this.heroWins();
-            } else if (!this.isGameEnded) {
-              this.heroMove();
-            }
-          }
-        }
-      });
-    }
-  }
-
-  createBlanks(word, startY = 300) {
-    this.correctWord = word.toUpperCase().replace(/\s/g, '');
-    this.blankTextObjects = [];
-    this.selectedLetters = [];
-    this.blankContainer = [];
-
-    const boxSize = 80;
-    const spacing = 20;
-    const maxWidth = 1080;
-    const lineHeight = 120;
-
-    const lines: any[] = [];
-    const isSingleWord = !word.includes(' ');
-
-    if (isSingleWord) {
-      const charsPerLine = Math.floor((maxWidth + spacing) / (boxSize + spacing)) - 1; // space for hyphen
-      let index = 0;
-
-      while (index < word.length) {
-        let segment = word.slice(index, index + charsPerLine);
-        lines.push(segment);
-        index += charsPerLine;
-      }
-    } else {
-      const words: any = word.toUpperCase().split(' ');
-      let currentLine: any[] = [];
-      let currentLineWidth = 0;
-
-      for (let w = 0; w < words.length; w++) {
-        const word = words[w];
-        const wordWidth = word.length * (boxSize + spacing) - spacing;
-
-        if (currentLineWidth + wordWidth <= maxWidth || currentLine.length === 0) {
-          currentLine.push(word);
-          currentLineWidth += wordWidth + (currentLine.length > 1 ? boxSize + spacing : 0);
-        } else {
-          lines.push(currentLine.join(' '));
-          currentLine = [word];
-          currentLineWidth = wordWidth;
-        }
-      }
-
-      if (currentLine.length > 0) {
-        lines.push(currentLine.join(' '));
-      }
-    }
-
-    let y = startY;
-    lines.forEach((lineWord, i) => {
-      const isLastLine = i === lines.length - 1;
-      const showHyphen = isSingleWord && !isLastLine;
-      this._renderLineBlanks(lineWord, y, boxSize, spacing, showHyphen);
-      y += lineHeight;
-    });
-  }
-
-  _renderLineBlanks(lineWord, y, boxSize, spacing, showHyphen = false) {
-    let visualIndex = 0;
-    const lettersOnly = lineWord.replace(/\s/g, '');
-    const totalWidth = lettersOnly.length * (boxSize + spacing) - spacing;
-    const xStart = (this.scale.width - totalWidth) / 2;
-
-    for (let i = 0; i < lineWord.length; i++) {
-      const char = lineWord[i];
-
-      if (char === ' ') {
-        // Add spacing for visual gap, no box or text
-        visualIndex++;
-        continue;
-      }
-
-      const x = xStart + visualIndex * (boxSize + spacing);
-
-      const box = this.add.rectangle(x, y, boxSize, boxSize, 0xffffff)
-        .setStrokeStyle(2, 0x000000)
-        .setOrigin(0.5);
-
-      const letterText = this.add.text(x, y, '', {
-        fontFamily: "Arial",
-        fontSize: "44px",
-        color: '#000',
-      }).setOrigin(0.5);
-
-      this.blankTextObjects.push(letterText);
-      this.blankContainer.push(box, letterText);
-      visualIndex++;
-    }
-
-    if (showHyphen) {
-      const hyphenX = xStart + visualIndex * (boxSize + spacing) - spacing / 2;
-      this.add.text(hyphenX, y, '-', {
-        fontFamily: 'Arial',
-        fontSize: '44px',
-        color: '#000',
-      }).setOrigin(0.5);
-    }
-  }
-
-
-
-  removeBlanksAndKeyboard() {
-    if (this.blankContainer) {
-      this.blankContainer.forEach(obj => obj.destroy());
-      this.blankContainer = [];
-      this.blankTextObjects = [];
-      this.selectedLetters = [];
-      this.correctWord = '';
-    }
-
-    if (this.ultimateRsult) {
-      this.ultimateRsult.destroy()
-    }
-
-    if (this.keyboardContainer) {
-      this.keyboardContainer.forEach(obj => obj.destroy());
-      this.keyboardContainer = [];
-    }
-  }
-
-  activateKeyboardAndBlanks() {
-    // Activate keyboard
-    if (this.keyboardContainer) {
-      this.keyboardContainer.forEach(obj => {
-        obj.setAlpha?.(1);
-        obj.setInteractive?.({ useHandCursor: true });
-      });
-    }
-
-    // Activate blanks
-    if (this.blankContainer) {
-      this.blankContainer.forEach(obj => {
-        obj.setAlpha?.(1);
-      });
-    }
-  }
-
-  deactivateKeyboardAndBlanks() {
-    // Deactivate keyboard
-    if (this.keyboardContainer) {
-      this.keyboardContainer.forEach(obj => {
-        obj.disableInteractive?.(); // only if interactive
-        obj.setAlpha?.(0.5);
-      });
-    }
-
-    // Deactivate blanks
-    if (this.blankContainer) {
-      this.blankContainer.forEach(obj => {
-        obj.setAlpha?.(0.5);
-      });
-    }
-  }
-
 
 
   // Util functions
