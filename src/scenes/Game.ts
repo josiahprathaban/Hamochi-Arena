@@ -64,7 +64,9 @@ export class Game extends Scene {
   heroAura: String = ""
   opponentAura: String = ""
   heroComboImg: GameObjects.Image;
+  heroShldImg: GameObjects.Image;
   opponentComboImg: GameObjects.Image;
+  opponentShldImg: GameObjects.Image;
   opponentPowerBars: number = 0
   heroPowerBars: number = 0
   correctWord: any;
@@ -183,8 +185,8 @@ export class Game extends Scene {
       .text(0, 0, "", {
         fontFamily: "Arial",
         fontSize: "32px",
-        backgroundColor: "#a64245",
-        padding: { x: 10, y: 5 }
+        backgroundColor: "#00ff00",
+        padding: { x: 20, y: 10 }
       }).setDepth(2000).setAlpha(0)
 
 
@@ -227,8 +229,8 @@ export class Game extends Scene {
       .text(0, 0, "", {
         fontFamily: "Arial",
         fontSize: "32px",
-        backgroundColor: "#a64245",
-        padding: { x: 10, y: 5 }
+        backgroundColor: "#00ff00",
+        padding: { x: 20, y: 10 }
       }).setDepth(2000).setAlpha(0)
     this.imgOpponentThinking = this.add
       .sprite(0, 0, "imgTimer")
@@ -382,15 +384,18 @@ export class Game extends Scene {
     ).setScrollFactor(0)
 
     this.heroComboImg = this.add
-      .image(200, 960, "imgCombo")
-      .setOrigin(0.5, 0).setScrollFactor(1).setAlpha(0)
+      .image(0, 0, "imgCombo")
+      .setOrigin(0.5, 0).setAlpha(0)
+    this.heroShldImg = this.add
+      .image(0, 0, "imgShild").setScale(0.5)
+      .setOrigin(0.5, 0).setAlpha(0)
 
     this.heroComboTxt = this.add
-      .text(115, 990, "", {
+      .text(0, 0, "", {
         fontFamily: "Arial",
         fontSize: "32px",
         color: "#000"
-      })
+      }).setOrigin(0.5)
 
     for (let index = 0; index < this.heroPowerBars; index++) {
       this.add
@@ -409,14 +414,17 @@ export class Game extends Scene {
     ).setScrollFactor(0)
 
     this.opponentComboImg = this.add
-      .image(Number(this.game.config.width) - 200, 960, "imgCombo")
+      .image(0, 0, "imgCombo")
+      .setOrigin(0.5, 0).setScrollFactor(1).setAlpha(0)
+    this.opponentShldImg = this.add
+      .image(0, 0, "imgShild").setScale(0.5)
       .setOrigin(0.5, 0).setScrollFactor(1).setAlpha(0)
     this.opponentComboTxt = this.add
-      .text(Number(this.game.config.width) - 115, 990, "", {
+      .text(0, 0, "", {
         fontFamily: "Arial",
         fontSize: "32px",
         color: "#000"
-      }).setOrigin(1, 0)
+      }).setOrigin(0.5)
 
     for (let index = 0; index < this.opponentPowerBars; index++) {
       this.add
@@ -553,6 +561,8 @@ export class Game extends Scene {
               this.isOpponentLastQuestionCorrect = true
 
               await this.opponentAttack();
+              this.opponentComboTxt.setText("")
+              this.opponentComboImg.setAlpha(0)
             } else {
 
               this.opponentBasePower = 0
@@ -712,6 +722,30 @@ export class Game extends Scene {
 
     if (this.imgHero!.x <= -500) {
       this.opponentWins();
+    }
+
+    if (this.heroComboImg && this.heroComboTxt && this.imgHero) {
+      this.heroComboImg.x = this.imgHero.x - 50;
+      this.heroComboImg.y = this.imgHero.y - 200;
+      this.heroComboTxt.x = this.heroComboImg.x;
+      this.heroComboTxt.y = this.heroComboImg.y + 50;
+    }
+
+    if (this.heroShldImg && this.imgHero) {
+      this.heroShldImg.x = this.imgHero.x;
+      this.heroShldImg.y = this.imgHero.y - 150;
+    }
+
+    if (this.opponentComboImg && this.opponentComboTxt && this.imgOpponent) {
+      this.opponentComboImg.x = this.imgOpponent.x + 50;
+      this.opponentComboImg.y = this.imgOpponent.y - 200;
+      this.opponentComboTxt.x = this.opponentComboImg.x;
+      this.opponentComboTxt.y = this.opponentComboImg.y + 50;
+    }
+
+    if (this.opponentShldImg && this.imgOpponent) {
+      this.opponentShldImg.x = this.imgOpponent.x;
+      this.opponentShldImg.y = this.imgOpponent.y - 150;
     }
   }
 
@@ -958,6 +992,8 @@ export class Game extends Scene {
       this.updateQuestionHistoryHero()
       this.isHeroLastQuestionCorrect = true
       await this.heroAttack();
+      this.heroComboTxt.setText("")
+      this.heroComboImg.setAlpha(0)
 
       if (this.questionHistoryHero.length == this.heroPowerBars) {
         await this.destroyQuestion()
@@ -1139,8 +1175,10 @@ export class Game extends Scene {
     // }
 
     // Endurance Aura
-    if (this.opponentAura == "Endurance")
+    if (this.opponentAura == "Endurance") {
       power -= 150
+      this.opponentShldImg.setAlpha(1)
+    }
 
     power = Math.min(power, 1450 - this.imgHero!.x)
     await this.cameraZoomIn()
@@ -1170,6 +1208,7 @@ export class Game extends Scene {
     this.imgOpponent!.x = this.imgHero!.x + 180
     this.imgMaskHero.destroy();
     this.imgMaskOpponent.destroy();
+    this.opponentShldImg.setAlpha(0)
 
     this.cameraZoomOut()
     if (this.opponentTimer && !this.isGameEnded) {
@@ -1206,7 +1245,7 @@ export class Game extends Scene {
     if (this.heroTimer) {
       this.heroTimer.paused = true
     }
-    this.questionBubble?.setAlpha(0.5);
+    this.questionBubble?.setAlpha(0.2);
     this.optionButtons.forEach((option) => { option.setAlpha(0.5), option.getByName("image").removeInteractive() });
     // this.deactivateKeyboardAndBlanks()
     let power = this.opponentBasePower
@@ -1279,8 +1318,10 @@ export class Game extends Scene {
     // }
 
     // Endurance Aura
-    if (this.heroAura == "Endurance")
+    if (this.heroAura == "Endurance") {
       power -= 150
+      this.heroShldImg.setAlpha(1)
+    }
 
     power = Math.min(power, this.imgHero!.x + 550)
     await this.cameraZoomIn()
@@ -1309,6 +1350,7 @@ export class Game extends Scene {
     this.imgOpponent!.x = this.imgHero!.x + 180
     this.imgMaskHero.destroy();
     this.imgMaskOpponent.destroy();
+    this.heroShldImg.setAlpha(0)
 
     this.cameraZoomOut()
     if (this.heroTimer && !this.isGameEnded) {
@@ -1720,6 +1762,13 @@ export class Game extends Scene {
           } else {
             const wrongSound = this.sound.add("sound_xyz");
             wrongSound.play();
+            if (this.imgMaskHero) {
+              this.imgMaskHero.destroy();
+            }
+            this.imgMaskHero = this.add
+              .image(0, 0, "imgMask1")
+              .setDepth(100)
+              .setScale(0.4);
             wrongSound.once('complete', () => {
               // Clean up and resolve after wrong answer sound completes
               this.displayWordText!.destroy();
