@@ -574,9 +574,7 @@ export class Game extends Scene {
 
               // await this.cameraZoomIn()
             }
-            if (this.imgHero!.x < -500) {
-              this.opponentWins();
-            } else if (!this.isGameEnded) {
+            if (!this.isGameEnded) {
               this.opponentMove();
             }
           }
@@ -706,6 +704,14 @@ export class Game extends Scene {
     if (this.displayWordText && this.imgHero) {
       this.displayWordText.x = this.imgHero.x;
       this.displayWordText.y = this.imgHero.y - 150;
+    }
+
+    if (this.imgHero!.x >= 1400) {
+      this.heroWins();
+    }
+
+    if (this.imgHero!.x <= -500) {
+      this.opponentWins();
     }
   }
 
@@ -962,9 +968,7 @@ export class Game extends Scene {
           this.ultimateMoveHero()
         });
       } else {
-        if (this.imgHero!.x > 1400) {
-          this.heroWins();
-        } else if (!this.isGameEnded) {
+        if (!this.isGameEnded) {
           this.heroMove();
         }
       }
@@ -991,9 +995,7 @@ export class Game extends Scene {
       await this.cameraZoomIn()
       await this.destroyQuestion()
 
-      if (this.imgHero!.x > 1400) {
-        this.heroWins();
-      } else if (!this.isGameEnded) {
+      if (!this.isGameEnded) {
         this.heroMove();
       }
     }
@@ -1517,9 +1519,7 @@ export class Game extends Scene {
               await this.destroyQuestion()
             }
             this.removeBlanksAndKeyboard()
-            if (this.imgHero!.x > 1400) {
-              this.heroWins();
-            } else if (!this.isGameEnded) {
+            if (!this.isGameEnded) {
               this.heroMove();
             }
           }
@@ -1529,7 +1529,7 @@ export class Game extends Scene {
   }
 
   createBlanks(word, startY = 300) {
-    this.correctWord = word.toUpperCase().replace(/\s/g, '');
+    this.correctWord = word.toUpperCase();
     this.blankTextObjects = [];
     this.selectedLetters = [];
     this.blankContainer = [];
@@ -1711,7 +1711,7 @@ export class Game extends Scene {
           // All letters done, now say the full word using speech synthesis
           this.displayWordText!.setText(word);
           if (word == this.correctWord.replace(/\s/g, '')) {
-            this.speak(word, () => {
+            this.speak(this.correctWord, () => {
               // Clean up the display text after everything is done
               this.displayWordText!.destroy();
               this.displayWordText = null;
@@ -1785,6 +1785,25 @@ export class Game extends Scene {
   speak(text: string, onComplete: (() => void) | null = null) {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = 'en-GB';
+
+    // Get available voices
+    const voices = window.speechSynthesis.getVoices();
+
+    // Try to find a female-sounding UK English voice
+    const femaleVoice = voices.find(voice =>
+      voice.lang === 'en-GB' && /female|Google UK English Female|Google English/.test(voice.name)
+    );
+
+    // Fallback: Use any English female voice
+    if (!femaleVoice) {
+      const fallbackVoice = voices.find(voice =>
+        voice.lang.startsWith('en') && /female|Google English/.test(voice.name)
+      );
+      utterance.voice = fallbackVoice || null;
+    } else {
+      utterance.voice = femaleVoice;
+    }
+
     utterance.rate = 1.0; // Adjust as needed
 
     if (onComplete) {
