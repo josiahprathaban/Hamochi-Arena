@@ -126,6 +126,15 @@ export class Preloader extends Scene {
       }
     );
 
+    // Load alphabet sounds A-Z
+    const alphabet = 'abcdefghijklmnopqrstuvwxyz'.split('');
+    alphabet.forEach(letter => {
+      this.load.audio(`sound_${letter}`, `english-alphabet-sound/${letter}.mp3`);
+    });
+
+    this.load.audio(`sound_oops`, `sfx_oops.mp3`);
+    this.load.audio(`sound_xyz`, `sfx_xyz.mp3`);
+
   }
 
   create() {

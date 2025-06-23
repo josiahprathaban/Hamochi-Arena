@@ -1,5 +1,3 @@
-// V8
-
 import { GameObjects, Scene } from "phaser";
 import questions from "../questionsX.json";
 
@@ -77,6 +75,8 @@ export class Game extends Scene {
   blankContainer: any[];
   isUltimateMove: Boolean = false
   ultimateRsult: GameObjects.Image;
+  displayWordText: GameObjects.Text | null = null;
+  recoveryTimer: Phaser.Time.TimerEvent;
 
   constructor() {
     super("Game");
@@ -312,6 +312,8 @@ export class Game extends Scene {
 
     // this.createBlanks('Foot Ruler', 1300);
     // this.createVirtualKeyboard('Foot Ruler', 20, 1500);
+
+    // this.speak("Select Your Aura");
   }
 
   selectAura(text) {
@@ -340,6 +342,7 @@ export class Game extends Scene {
       }
     });
   }
+
   async startGame() {
     this.gameCamera = this.cameras.add(0, 0, Number(this.game.config.width), Number(this.game.config.height) / 2);
     this.gameCamera.setBounds(-760, 0, 2600, Number(this.game.config.height) / 2)
@@ -423,7 +426,6 @@ export class Game extends Scene {
         .setScale(0.25).setTint(0x000000)
     }
   }
-
 
   updateTheme() {
     this.sponsor = "Hamochi";
@@ -699,6 +701,11 @@ export class Game extends Scene {
     if (this.imgOpponentAura && this.imgOpponent) {
       // this.imgOpponentAura!.y = this.imgOpponent!.y;
       this.imgOpponentAura!.x = this.imgOpponent!.x;
+    }
+
+    if (this.displayWordText && this.imgHero) {
+      this.displayWordText.x = this.imgHero.x;
+      this.displayWordText.y = this.imgHero.y - 150;
     }
   }
 
@@ -1014,18 +1021,40 @@ export class Game extends Scene {
 
   async opponentMove() {
     if (!this.isOpponentLastQuestionCorrect) {
-      await this.timeDelay(3000);
-      this.isOpponentLastQuestionCorrect = true
-      this.sptDizzyOpponent.setAlpha(0)
+      // Store the timer event for the 3-second delay
+      this.recoveryTimer = this.time.delayedCall(3000, () => {
+        this.recoveryTimer.destroy();
+        this.isOpponentLastQuestionCorrect = true;
+        this.sptDizzyOpponent.setAlpha(0);
+
+        // Continue with the rest of the opponent move logic
+        this.imgMaskOpponent?.destroy();
+        // Speed Aura
+        this.startOpponentTimer(this.opponentAura == "Speed" ? 3 : 3.6);
+      });
+
+      // You can store this timer if you need to control it elsewhere
+      // For example, add a property to your class: opponentRecoveryTimer: Phaser.Time.TimerEvent;
+      // this.opponentRecoveryTimer = recoveryTimer;
+
+      // You can also add methods to control the timer:
+      // To pause: recoveryTimer.paused = true;
+      // To resume: recoveryTimer.paused = false;
+      // To cancel: recoveryTimer.destroy();
+
+    } else {
+      this.imgMaskOpponent?.destroy();
+      // Speed Aura
+      this.startOpponentTimer(this.opponentAura == "Speed" ? 3 : 3.6);
     }
-    this.imgMaskOpponent?.destroy();
-    // Speed Aura
-    this.startOpponentTimer(this.opponentAura == "Speed" ? 3 : 3.6)
   }
 
   async heroAttack() {
     if (this.opponentTimer) {
       this.opponentTimer.paused = true
+    }
+    if (this.recoveryTimer) {
+      this.recoveryTimer.paused = true
     }
     if (this.imgMaskHero) {
       this.imgMaskHero.destroy();
@@ -1143,6 +1172,9 @@ export class Game extends Scene {
     this.cameraZoomOut()
     if (this.opponentTimer && !this.isGameEnded) {
       this.opponentTimer.paused = false
+    }
+    if (this.recoveryTimer && !this.isGameEnded) {
+      this.recoveryTimer.paused = false
     }
   }
 
@@ -1407,7 +1439,8 @@ export class Game extends Scene {
       lettersInWord.push(letter);
     }
 
-    Phaser.Utils.Array.Shuffle(lettersInWord);
+    // Phaser.Utils.Array.Shuffle(lettersInWord);
+    lettersInWord.sort();
 
     this.keyboardContainer = [];
 
@@ -1450,6 +1483,13 @@ export class Game extends Scene {
                   ? "imgCorrect"
                   : "imgWrong"
               ).setScale(0.3)
+            if (this.opponentTimer) {
+              this.opponentTimer.paused = true
+            }
+            if (this.recoveryTimer) {
+              this.recoveryTimer.paused = true
+            }
+            await this.showWords(typedWord);
             if (typedWord === targetWord) {
               this.isUltimateMove = true
               await this.heroAttack();
@@ -1586,8 +1626,6 @@ export class Game extends Scene {
     }
   }
 
-
-
   removeBlanksAndKeyboard() {
     if (this.blankContainer) {
       this.blankContainer.forEach(obj => obj.destroy());
@@ -1641,7 +1679,124 @@ export class Game extends Scene {
     }
   }
 
+  async showWords(wordx): Promise<void> {
+    return new Promise(async (resolve) => {
+      await this.cameraZoomIn()
+      console.log("showWords called with:", wordx);
+      const word = wordx;
 
+      // Create text that will follow the hero
+      this.displayWordText = this.add.text(this.imgHero!.x, this.imgHero!.y - 150, '', {
+        fontFamily: "Arial",
+        fontSize: "48px",
+        color: '#FFFFFF', // White text for better visibility
+        fontStyle: 'bold',
+        align: 'center',
+        stroke: '#000000', // Black outline
+        strokeThickness: 3
+      }).setOrigin(0.5).setDepth(2001); // High depth to appear above everything
+
+      const letters = word.split('');
+      let conWord = '';
+      let index = 0;
+
+      const speakNext = () => {
+        if (index < letters.length) {
+          const letter = letters[index];
+          conWord += letter;
+          this.displayWordText!.setText(conWord);
+          this.speakLetter(letter, speakNext);
+          index++;
+        } else {
+          // All letters done, now say the full word using speech synthesis
+          this.displayWordText!.setText(word);
+          if (word == this.correctWord.replace(/\s/g, '')) {
+            this.speak(word, () => {
+              // Clean up the display text after everything is done
+              this.displayWordText!.destroy();
+              this.displayWordText = null;
+              resolve(); // Resolve the promise when everything is complete
+            });
+          } else {
+            const wrongSound = this.sound.add("sound_xyz");
+            wrongSound.play();
+            wrongSound.once('complete', () => {
+              // Clean up and resolve after wrong answer sound completes
+              this.displayWordText!.destroy();
+              this.displayWordText = null;
+              resolve();
+            });
+          }
+        }
+      };
+
+      speakNext(); // Start the chain
+    });
+  }
+
+  speakLetter(letter: string, onComplete: (() => void) | null = null) {
+    // Only play sound for alphabetic characters
+    if (/[a-zA-Z]/.test(letter)) {
+      const soundKey = `sound_${letter.toLowerCase()}`;
+      const sound = this.sound.add(soundKey);
+
+      // Set playback rate to speed up the sound (1.5x faster)
+      sound.setRate(1.2); // You can adjust this value (1.2, 1.5, 2.0, etc.)
+      sound.play();
+
+      if (onComplete) {
+        // Reduce the delay by calling onComplete sooner
+        // Option 1: Use a fixed shorter delay instead of waiting for complete
+        this.time.delayedCall(500, () => { // Adjust this value (200-500ms)
+          onComplete();
+        });
+
+        // Option 2: Or still use complete event but with faster playback
+        // sound.once('complete', () => {
+        //   onComplete();
+        // });
+      }
+
+    } else {
+      // For non-alphabetic characters, reduce the delay
+      if (onComplete) {
+        this.time.delayedCall(100, onComplete); // Reduced from 200ms to 100ms
+      }
+    }
+  }
+
+  // Add a faster speech synthesis function
+  speakFast(text: string, onComplete: (() => void) | null = null) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-US';
+    utterance.rate = 2.0; // Faster rate for individual letters
+    utterance.volume = 0.8;
+
+    if (onComplete) {
+      utterance.onend = () => {
+        onComplete();
+      };
+    }
+
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  }
+
+  speak(text: string, onComplete: (() => void) | null = null) {
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.lang = 'en-GB';
+    utterance.rate = 1.0; // Adjust as needed
+
+    if (onComplete) {
+      utterance.onend = () => {
+        onComplete(); // Call the next step after speaking
+      };
+    }
+
+    // Cancel previous speech queue to prevent overlap
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(utterance);
+  }
 
   // Util functions
   getRandomItem(arr) {
