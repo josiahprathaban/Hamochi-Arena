@@ -36,10 +36,10 @@ export class Game extends Scene {
   isOpponentLastQuestionCorrect: Boolean = true
   questionHistoryHero: Array<any> = []
   questionHistoryImagesHero: Array<GameObjects.Image> = [];
-  heroCriticalTxt: GameObjects.Text;
+  txtHero: GameObjects.Text;
   questionHistoryOpponent: Array<any> = []
   questionHistoryImagesOpponent: Array<GameObjects.Image> = [];
-  opponentCriticalTxt: GameObjects.Text;
+  txtOpponent: GameObjects.Text;
   ring: GameObjects.Image;
   themeTxtGrp: Array<any>;
   timerX: number = 99;
@@ -79,8 +79,6 @@ export class Game extends Scene {
   ultimateRsult: GameObjects.Image;
   displayWordText: GameObjects.Text | null = null;
   recoveryTimer: Phaser.Time.TimerEvent;
-  heroCriticalImg: GameObjects.Image;
-  opponentCriticalImg: GameObjects.Image;
 
   constructor() {
     super("Game");
@@ -183,7 +181,13 @@ export class Game extends Scene {
       .setAlpha(0);
     this.sptIdeaHero.play("animIdea");
 
-
+    this.txtHero = this.add
+      .text(0, 0, "", {
+        fontFamily: "Arial",
+        fontSize: "32px",
+        backgroundColor: "#00ff00",
+        padding: { x: 20, y: 10 }
+      }).setDepth(2000).setAlpha(0)
 
 
     this.imgOpponent = this.add
@@ -221,6 +225,13 @@ export class Game extends Scene {
       .setAlpha(0);
     this.sptDizzyOpponent.play("animDizzy");
 
+    this.txtOpponent = this.add
+      .text(0, 0, "", {
+        fontFamily: "Arial",
+        fontSize: "32px",
+        backgroundColor: "#00ff00",
+        padding: { x: 20, y: 10 }
+      }).setDepth(2000).setAlpha(0)
     this.imgOpponentThinking = this.add
       .sprite(0, 0, "imgTimer")
       .setOrigin(0)
@@ -375,19 +386,9 @@ export class Game extends Scene {
     this.heroComboImg = this.add
       .image(0, 0, "imgCombo")
       .setOrigin(0.5, 0).setAlpha(0)
-    this.heroCriticalImg = this.add
-      .image(0, 0, "imgCritical")
-      .setOrigin(0.5, 0).setAlpha(0).setScale(0.8)
     this.heroShldImg = this.add
       .image(0, 0, "imgShild").setScale(0.5)
       .setOrigin(0.5, 0).setAlpha(0)
-
-    this.heroCriticalTxt = this.add
-      .text(0, 0, "", {
-        fontFamily: "Arial",
-        fontSize: "28px",
-        color: "#000"
-      }).setOrigin(0.5)
 
     this.heroComboTxt = this.add
       .text(0, 0, "", {
@@ -414,24 +415,14 @@ export class Game extends Scene {
 
     this.opponentComboImg = this.add
       .image(0, 0, "imgCombo")
-      .setOrigin(0.5, 0).setAlpha(0)
-    this.opponentCriticalImg = this.add
-      .image(0, 0, "imgCritical")
-      .setOrigin(0.5, 0).setAlpha(0).setScale(0.8)
+      .setOrigin(0.5, 0).setScrollFactor(1).setAlpha(0)
     this.opponentShldImg = this.add
       .image(0, 0, "imgShild").setScale(0.5)
-      .setOrigin(0.5, 0).setAlpha(0)
+      .setOrigin(0.5, 0).setScrollFactor(1).setAlpha(0)
     this.opponentComboTxt = this.add
       .text(0, 0, "", {
         fontFamily: "Arial",
         fontSize: "32px",
-        color: "#000"
-      }).setOrigin(0.5)
-
-    this.opponentCriticalTxt = this.add
-      .text(0, 0, "", {
-        fontFamily: "Arial",
-        fontSize: "28px",
         color: "#000"
       }).setOrigin(0.5)
 
@@ -675,7 +666,10 @@ export class Game extends Scene {
       this.sptIdeaHero!.y = this.imgHero!.y - 100;
       this.sptIdeaHero!.x = this.imgHero!.x;
     }
-
+    if (this.txtHero && this.imgHero) {
+      this.txtHero!.y = this.imgHero!.y - 100;
+      this.txtHero!.x = this.imgHero!.x - 30;
+    }
     if (this.imgMaskHero && this.imgHero) {
       this.imgMaskHero!.y = this.imgHero!.y;
       this.imgMaskHero!.x = this.imgHero!.x;
@@ -700,7 +694,10 @@ export class Game extends Scene {
       this.sptDizzyOpponent!.y = this.imgOpponent!.y - 70;
       this.sptDizzyOpponent!.x = this.imgOpponent!.x;
     }
-
+    if (this.txtOpponent && this.imgOpponent) {
+      this.txtOpponent!.y = this.imgOpponent!.y - 100;
+      this.txtOpponent!.x = this.imgOpponent!.x - 30;
+    }
     if (this.imgOpponentThinking && this.imgOpponent) {
       this.imgOpponentThinking!.y = this.imgOpponent!.y - 120;
       this.imgOpponentThinking!.x = this.imgOpponent!.x - 40;
@@ -734,13 +731,6 @@ export class Game extends Scene {
       this.heroComboTxt.y = this.heroComboImg.y + 50;
     }
 
-    if (this.heroCriticalTxt && this.imgHero && this.heroCriticalImg) {
-      this.heroCriticalImg.x = this.imgHero.x - 50;
-      this.heroCriticalImg.y = this.imgHero.y - 110;
-      this.heroCriticalTxt.y = this.heroCriticalImg.y + 40;
-      this.heroCriticalTxt.x = this.heroCriticalImg.x;
-    }
-
     if (this.heroShldImg && this.imgHero) {
       this.heroShldImg.x = this.imgHero.x;
       this.heroShldImg.y = this.imgHero.y - 150;
@@ -751,12 +741,6 @@ export class Game extends Scene {
       this.opponentComboImg.y = this.imgOpponent.y - 200;
       this.opponentComboTxt.x = this.opponentComboImg.x;
       this.opponentComboTxt.y = this.opponentComboImg.y + 50;
-    }
-    if (this.opponentCriticalTxt && this.imgOpponent && this.opponentCriticalImg) {
-      this.opponentCriticalImg.x = this.imgOpponent.x + 50;
-      this.opponentCriticalImg.y = this.imgOpponent.y - 110;
-      this.opponentCriticalTxt.y = this.opponentCriticalImg.y + 40;
-      this.opponentCriticalTxt.x = this.opponentCriticalImg.x;
     }
 
     if (this.opponentShldImg && this.imgOpponent) {
@@ -1129,14 +1113,12 @@ export class Game extends Scene {
     let luck = Math.random()
     if (this.heroAura == "Luck" && luck < 0.5) {
       power += 250
-      this.heroCriticalTxt.setText("Critical Hit")
-      this.heroCriticalTxt?.setAlpha(1)
-      this.heroCriticalImg.setAlpha(1)
+      this.txtHero.setText("X2")
+      this.txtHero?.setAlpha(1)
     } else if (luck < 0.1) {
       power += 250
-      this.heroCriticalTxt.setText("Critical Hit")
-      this.heroCriticalTxt?.setAlpha(1)
-      this.heroCriticalImg.setAlpha(1)
+      this.txtHero.setText("X2")
+      this.txtHero?.setAlpha(1)
     } else {
       power += 100
     }
@@ -1167,6 +1149,8 @@ export class Game extends Scene {
           power = Math.min(1250 - this.imgHero!.x, power)
         this.isHeroFirstKO = false
       }
+
+      // this.txtHero.setText("WORD")
 
       this.questionHistoryHero = []
       await this.chainAttackAnimation(this.imgHero, this.questionHistoryImagesHero)
@@ -1219,8 +1203,7 @@ export class Game extends Scene {
     this.movePlayer([this.imgHero], power, "Expo");
     await this.movePlayer([this.imgOpponent], power, "Back");
     this.sptEnergyHero?.setAlpha(0)
-    this.heroCriticalTxt?.setAlpha(0)
-    this.heroCriticalImg.setAlpha(0)
+    this.txtHero?.setAlpha(0)
     await this.timeDelay(1000);
     this.imgOpponent!.x = this.imgHero!.x + 180
     this.imgMaskHero.destroy();
@@ -1273,14 +1256,12 @@ export class Game extends Scene {
     let luck = Math.random()
     if (this.opponentAura == "Luck" && luck < 0.5) {
       power += 250
-      this.opponentCriticalTxt.setText("Critical Hit")
-      this.opponentCriticalTxt?.setAlpha(1)
-      this.opponentCriticalImg.setAlpha(1)
+      this.txtOpponent.setText("X2")
+      this.txtOpponent?.setAlpha(1)
     } else if (luck < 0.1) {
       power += 250
-      this.opponentCriticalTxt.setText("Critical Hit")
-      this.opponentCriticalTxt?.setAlpha(1)
-      this.opponentCriticalImg.setAlpha(1)
+      this.txtOpponent.setText("X2")
+      this.txtOpponent?.setAlpha(1)
     } else {
       power += 100
     }
@@ -1313,6 +1294,7 @@ export class Game extends Scene {
         this.isOpponentFirstKO = false
       }
 
+      // this.txtOpponent.setText("WORD")
       this.questionHistoryOpponent = []
       await this.chainAttackAnimation(this.imgOpponent, this.questionHistoryImagesOpponent)
       this.sptEnergyOpponent?.setAlpha(1)
@@ -1363,8 +1345,7 @@ export class Game extends Scene {
     this.movePlayer([this.imgHero], -power, "Back");
     await this.movePlayer([this.imgOpponent], -power, "Expo");
     this.sptEnergyOpponent?.setAlpha(0)
-    this.opponentCriticalTxt?.setAlpha(0)
-    this.opponentCriticalImg.setAlpha(0)
+    this.txtOpponent?.setAlpha(0)
     await this.timeDelay(1000);
     this.imgOpponent!.x = this.imgHero!.x + 180
     this.imgMaskHero.destroy();
@@ -1487,316 +1468,7 @@ export class Game extends Scene {
     this.createVirtualKeyboard(word, 20, 1550);
   }
 
-  createVirtualKeyboardX(actualWord, xStart = 100, yStart = 100) {
-    const keySize = 90;
-    const keySpacing = 10;
-
-    // Standard QWERTY keyboard layout
-    const keyboardRows = [
-      ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-      ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-      ['Z', 'X', 'C', 'V', 'B', 'N', 'M']
-    ];
-
-    this.keyboardContainer = [];
-
-    keyboardRows.forEach((row, rowIndex) => {
-      // Calculate starting X position to center each row
-      const rowWidth = row.length * keySize + (row.length - 1) * keySpacing;
-      const rowStartX = xStart + (Number(this.game.config.width) - rowWidth) / 2 - xStart;
-
-      row.forEach((letter, colIndex) => {
-        const x = rowStartX + colIndex * (keySize + keySpacing);
-        const y = yStart + rowIndex * (keySize + keySpacing);
-
-        const keyBg = this.add.rectangle(x, y, keySize, keySize, 0xcccccc)
-          .setStrokeStyle(2, 0x000000)
-          .setOrigin(0);
-
-        const keyText = this.add.text(x + keySize / 2, y + keySize / 2, letter, {
-          fontFamily: "Arial",
-          fontSize: "40px",
-          color: '#000',
-          fontStyle: 'bold'
-        }).setOrigin(0.5);
-
-        this.keyboardContainer.push(keyBg, keyText);
-
-        keyBg.setInteractive({ useHandCursor: true });
-        keyBg.on('pointerdown', async () => {
-          if (this.selectedLetters.length < this.blankTextObjects.length) {
-            this.selectedLetters.push(letter);
-
-            const index = this.selectedLetters.length - 1;
-            this.blankTextObjects[index].setText(letter);
-
-            // Add visual feedback for key press
-            keyBg.setFillStyle(0x999999);
-            this.time.delayedCall(100, () => {
-              keyBg.setFillStyle(0xcccccc);
-            });
-
-            if (this.selectedLetters.length === this.blankTextObjects.length) {
-              const typedWord = this.selectedLetters.join('');
-              const targetWord = this.correctWord.replace(/\s/g, '');
-              this.ultimateRsult = this.add
-                .image(
-                  1000,
-                  1440,
-                  typedWord === targetWord
-                    ? "imgCorrect"
-                    : "imgWrong"
-                ).setScale(0.3)
-              if (this.opponentTimer) {
-                this.opponentTimer.paused = true
-              }
-              if (this.recoveryTimer) {
-                this.recoveryTimer.paused = true
-              }
-              await this.showWords(typedWord);
-              if (typedWord === targetWord) {
-                this.isUltimateMove = true
-                await this.heroAttack();
-                this.isUltimateMove = false
-              } else {
-                this.heroBasePower = 0
-                this.heroComboTxt.setText("")
-                this.heroComboImg.setAlpha(0)
-
-                this.questionHistoryHero = []
-                this.updateQuestionHistoryHero()
-                this.isHeroLastQuestionCorrect = false
-
-                if (this.imgMaskHero) {
-                  this.imgMaskHero.destroy();
-                }
-                this.imgMaskHero = this.add
-                  .image(0, 0, "imgMask6")
-                  .setDepth(100)
-                  .setScale(0.4);
-
-                this.sptDizzyHero.setAlpha(1)
-
-                await this.cameraZoomIn()
-                await this.destroyQuestion()
-              }
-              this.removeBlanksAndKeyboard()
-              if (!this.isGameEnded) {
-                this.heroMove();
-              }
-            }
-          }
-        });
-
-        // Add hover effects
-        keyBg.on('pointerover', () => {
-          keyBg.setFillStyle(0xdddddd);
-        });
-
-        keyBg.on('pointerout', () => {
-          keyBg.setFillStyle(0xcccccc);
-        });
-      });
-    });
-
-    // // Optional: Add a backspace button
-    // const backspaceY = yStart + 3 * (keySize + keySpacing);
-    // const backspaceX = xStart + (Number(this.game.config.width) - 120) / 2 - xStart;
-
-    // const backspaceBg = this.add.rectangle(backspaceX, backspaceY, 120, keySize, 0xff6b6b)
-    //   .setStrokeStyle(2, 0x000000)
-    //   .setOrigin(0);
-
-    // const backspaceText = this.add.text(backspaceX + 60, backspaceY + keySize / 2, '⌫', {
-    //   fontFamily: "Arial",
-    //   fontSize: "32px",
-    //   color: '#fff',
-    //   fontStyle: 'bold'
-    // }).setOrigin(0.5);
-
-    // this.keyboardContainer.push(backspaceBg, backspaceText);
-
-    // backspaceBg.setInteractive({ useHandCursor: true });
-    // backspaceBg.on('pointerdown', () => {
-    //   if (this.selectedLetters.length > 0) {
-    //     // Remove last letter
-    //     this.selectedLetters.pop();
-    //     const index = this.selectedLetters.length;
-    //     this.blankTextObjects[index].setText('');
-
-    //     // Visual feedback
-    //     backspaceBg.setFillStyle(0xff5555);
-    //     this.time.delayedCall(100, () => {
-    //       backspaceBg.setFillStyle(0xff6b6b);
-    //     });
-    //   }
-    // });
-
-    // backspaceBg.on('pointerover', () => {
-    //   backspaceBg.setFillStyle(0xff5555);
-    // });
-
-    // backspaceBg.on('pointerout', () => {
-    //   backspaceBg.setFillStyle(0xff6b6b);
-    // });
-  }
-
   createVirtualKeyboard(actualWord, xStart = 100, yStart = 100) {
-    const keySize = 95;
-    const keySpacing = 10;
-
-    // Standard QWERTY keyboard layout
-    const keyboardRows = [
-      ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I'],
-      ['J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R'],
-      ['S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z']
-    ];
-
-    this.keyboardContainer = [];
-
-    keyboardRows.forEach((row, rowIndex) => {
-      // Calculate starting X position to center each row
-      const rowWidth = row.length * keySize + (row.length - 1) * keySpacing;
-      const rowStartX = xStart + (Number(this.game.config.width) - rowWidth) / 2 - xStart;
-
-      row.forEach((letter, colIndex) => {
-        const x = rowStartX + colIndex * (keySize + keySpacing);
-        const y = yStart + rowIndex * (keySize + keySpacing);
-
-        const keyBg = this.add.rectangle(x, y, keySize, keySize, 0xcccccc)
-          .setStrokeStyle(2, 0x000000)
-          .setOrigin(0);
-
-        const keyText = this.add.text(x + keySize / 2, y + keySize / 2, letter, {
-          fontFamily: "Arial",
-          fontSize: "44px",
-          color: '#000',
-          fontStyle: 'bold'
-        }).setOrigin(0.5);
-
-        this.keyboardContainer.push(keyBg, keyText);
-
-        keyBg.setInteractive({ useHandCursor: true });
-        keyBg.on('pointerdown', async () => {
-          if (this.selectedLetters.length < this.blankTextObjects.length) {
-            this.selectedLetters.push(letter);
-
-            const index = this.selectedLetters.length - 1;
-            this.blankTextObjects[index].setText(letter);
-
-            // Add visual feedback for key press
-            keyBg.setFillStyle(0x999999);
-            this.time.delayedCall(100, () => {
-              keyBg.setFillStyle(0xcccccc);
-            });
-
-            if (this.selectedLetters.length === this.blankTextObjects.length) {
-              const typedWord = this.selectedLetters.join('');
-              const targetWord = this.correctWord.replace(/\s/g, '');
-              this.ultimateRsult = this.add
-                .image(
-                  1000,
-                  1440,
-                  typedWord === targetWord
-                    ? "imgCorrect"
-                    : "imgWrong"
-                ).setScale(0.3)
-              if (this.opponentTimer) {
-                this.opponentTimer.paused = true
-              }
-              if (this.recoveryTimer) {
-                this.recoveryTimer.paused = true
-              }
-              await this.showWords(typedWord);
-              if (typedWord === targetWord) {
-                this.isUltimateMove = true
-                await this.heroAttack();
-                this.isUltimateMove = false
-              } else {
-                this.heroBasePower = 0
-                this.heroComboTxt.setText("")
-                this.heroComboImg.setAlpha(0)
-
-                this.questionHistoryHero = []
-                this.updateQuestionHistoryHero()
-                this.isHeroLastQuestionCorrect = false
-
-                if (this.imgMaskHero) {
-                  this.imgMaskHero.destroy();
-                }
-                this.imgMaskHero = this.add
-                  .image(0, 0, "imgMask6")
-                  .setDepth(100)
-                  .setScale(0.4);
-
-                this.sptDizzyHero.setAlpha(1)
-
-                await this.cameraZoomIn()
-                await this.destroyQuestion()
-              }
-              this.removeBlanksAndKeyboard()
-              if (!this.isGameEnded) {
-                this.heroMove();
-              }
-            }
-          }
-        });
-
-        // Add hover effects
-        keyBg.on('pointerover', () => {
-          keyBg.setFillStyle(0xdddddd);
-        });
-
-        keyBg.on('pointerout', () => {
-          keyBg.setFillStyle(0xcccccc);
-        });
-      });
-    });
-
-    // // Optional: Add a backspace button
-    // const backspaceY = yStart + 3 * (keySize + keySpacing);
-    // const backspaceX = xStart + (Number(this.game.config.width) - 120) / 2 - xStart;
-
-    // const backspaceBg = this.add.rectangle(backspaceX, backspaceY, 120, keySize, 0xff6b6b)
-    //   .setStrokeStyle(2, 0x000000)
-    //   .setOrigin(0);
-
-    // const backspaceText = this.add.text(backspaceX + 60, backspaceY + keySize / 2, '⌫', {
-    //   fontFamily: "Arial",
-    //   fontSize: "32px",
-    //   color: '#fff',
-    //   fontStyle: 'bold'
-    // }).setOrigin(0.5);
-
-    // this.keyboardContainer.push(backspaceBg, backspaceText);
-
-    // backspaceBg.setInteractive({ useHandCursor: true });
-    // backspaceBg.on('pointerdown', () => {
-    //   if (this.selectedLetters.length > 0) {
-    //     // Remove last letter
-    //     this.selectedLetters.pop();
-    //     const index = this.selectedLetters.length;
-    //     this.blankTextObjects[index].setText('');
-
-    //     // Visual feedback
-    //     backspaceBg.setFillStyle(0xff5555);
-    //     this.time.delayedCall(100, () => {
-    //       backspaceBg.setFillStyle(0xff6b6b);
-    //     });
-    //   }
-    // });
-
-    // backspaceBg.on('pointerover', () => {
-    //   backspaceBg.setFillStyle(0xff5555);
-    // });
-
-    // backspaceBg.on('pointerout', () => {
-    //   backspaceBg.setFillStyle(0xff6b6b);
-    // });
-  }
-
-
-  createVirtualKeyboardY(actualWord, xStart = 100, yStart = 100) {
     const keySize = 95;
     const totalKeys = 20;
     const cols = 10;
